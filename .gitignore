@@ -1,0 +1,88 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+.venv/
+venv/
+env/
+
+# Node / Vue
+node_modules/
+dist/
+*.local
+.DS_Store
+
+# 环境变量（敏感信息）
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# PyCharm
+.idea/
+
+# VSCode
+.vscode/
+*.code-workspace
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Eclipse
+.project
+.classpath
+.settings/
+.metadata/
+
+# NetBeans
+nbproject/
+nbbuild/
+nbdist/
+
+# IntelliJ IDEA
+*.iml
+*.iws
+*.ipr
+out/
+
+# Visual Studio
+*.suo
+*.user
+*.vs/
+*.sln.docstates
+[Bb]in/
+[Oo]bj/
+
+# Android Studio
+*.apk
+*.aab
+local.properties
+.gradle/
+build/
+
+# WorkBuddy
+.workbuddy
+
+# 系统文件
+Thumbs.db
+.DS_Store
+Desktop.ini
+
+# 日志
+*.log
+logs/
+
+# 数据库文件
+*.db
+*.sqlite
+*.sqlite3
