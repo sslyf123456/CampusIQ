@@ -73,7 +73,17 @@ build/
 # WorkBuddy
 .workbuddy
 
-# 系统文件
+# Office 临时文件
+~$*.docx
+~$*.xlsx
+~$*.pptx
+~$*.doc
+~$*.xls
+~$*.ppt
+*.tmp
+~*.docx
+~*.xlsx
+~*.pptx
 Thumbs.db
 .DS_Store
 Desktop.ini
