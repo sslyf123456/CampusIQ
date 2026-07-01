@@ -38,7 +38,8 @@
 ```json
 {
   "username": "20230001",
-  "password": "123456"
+  "password": "123456",
+  "role": "student"
 }
 ```
 
@@ -54,7 +55,7 @@
 }
 ```
 
-**说明**: username 可以是学号或管理员用户名，先查 admins 表再查 students 表。
+**说明**: `role` 指定登录角色，`student` 用学号登录（查 students 表），`admin` 用用户名登录（查 admins 表）。前端登录入口通过角色切换区分。
 
 ---
 
@@ -108,6 +109,18 @@
 ```
 
 **响应**: `{"detail": "密码修改成功"}`
+
+---
+
+### POST /api/campus/auth/logout — 退出登录
+
+**权限**: 需登录
+
+**请求头**: `Authorization: Bearer <token>`
+
+**响应**: `{"detail": "已退出登录"}`
+
+**说明**: 后端将该 JWT 的 `jti` 写入 `campus.token_blacklist` 表，后续请求携带该 token 时返回 401（Token已失效，请重新登录）。token 过期后黑名单记录自动失效，可通过定时任务清理。
 
 ---
 

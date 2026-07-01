@@ -167,6 +167,22 @@ CREATE INDEX IF NOT EXISTS idx_notices_published ON campus.notices(published_at 
 COMMENT ON TABLE  campus.notices IS '校园通知公告：管理员发布，学生检索查看';
 COMMENT ON COLUMN campus.notices.category IS 'academic=教务，dormitory=后勤，scholarship=评奖，general=通用';
 
+-- --------------------------
+-- Token 黑名单表（退出登录后使 JWT 失效）
+-- --------------------------
+CREATE TABLE IF NOT EXISTS campus.token_blacklist (
+    id          SERIAL PRIMARY KEY,
+    jti         VARCHAR(64)  NOT NULL UNIQUE,              -- JWT ID（唯一标识）
+    user_sub    VARCHAR(64)  NOT NULL,                     -- 用户标识（学号或管理员用户名）
+    expires_at  TIMESTAMPTZ  NOT NULL,                     -- Token 原始过期时间
+    created_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_token_blacklist_jti ON campus.token_blacklist(jti);
+CREATE INDEX IF NOT EXISTS idx_token_blacklist_expires ON campus.token_blacklist(expires_at);
+
+COMMENT ON TABLE  campus.token_blacklist IS '已退出的 JWT 黑名单，过期后自动清理';
+
 -- ============================================================
 -- Schema 2: ai_campus（AI 问答数据，归属 ai-service）
 -- ============================================================

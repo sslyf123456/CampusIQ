@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from .database import get_db
 from .utils.security import decode_token
+from .services.auth_service import is_token_blacklisted
 
 security = HTTPBearer(auto_error=False)
 
@@ -18,6 +19,8 @@ def get_current_user(
         payload = decode_token(credentials.credentials)
     except Exception:
         raise HTTPException(status_code=401, detail="Token无效或已过期")
+    if is_token_blacklisted(db, payload.get("jti", "")):
+        raise HTTPException(status_code=401, detail="Token已失效，请重新登录")
     return payload
 
 

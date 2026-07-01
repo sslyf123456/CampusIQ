@@ -1,4 +1,5 @@
 import time
+import uuid
 
 import bcrypt
 
@@ -27,6 +28,7 @@ def create_token(sub: str, role: str, db_id: int) -> str:
         "db_id": db_id,
         "iat": now,
         "exp": now + settings.JWT_EXPIRE_HOURS * 3600,
+        "jti": uuid.uuid4().hex,
     }
     return _jwt().encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
 

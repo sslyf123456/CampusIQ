@@ -1,15 +1,19 @@
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import func
+from datetime import datetime, timezone
 
 from ..models.admin import Admin
 from ..models.student import Student
+from ..models.token_blacklist import TokenBlacklist
 from ..utils.security import verify_password, hash_password, create_token
 from ..utils.exceptions import NotFound, BadRequest
 
 
-def login(db: Session, username: str, password: str):
-    admin = db.query(Admin).filter(Admin.username == username).first()
-    if admin:
+def login(db: Session, username: str, password: str, role: str):
+    if role == "admin":
+        admin = db.query(Admin).filter(Admin.username == username).first()
+        if not admin:
+            raise BadRequest("管理员账号不存在")
         if not verify_password(password, admin.password_hash):
             raise BadRequest("密码错误")
         token = create_token(sub=admin.username, role="admin", db_id=admin.id)
@@ -19,16 +23,15 @@ def login(db: Session, username: str, password: str):
         }
 
     student = db.query(Student).filter(Student.student_id == username).first()
-    if student:
-        if not verify_password(password, student.password_hash):
-            raise BadRequest("密码错误")
-        token = create_token(sub=student.student_id, role="student", db_id=student.id)
-        return {
-            "token": token,
-            "user": {"role": "student", "username": student.student_id, "name": student.name},
-        }
-
-    raise BadRequest("账号不存在")
+    if not student:
+        raise BadRequest("学号不存在")
+    if not verify_password(password, student.password_hash):
+        raise BadRequest("密码错误")
+    token = create_token(sub=student.student_id, role="student", db_id=student.id)
+    return {
+        "token": token,
+        "user": {"role": "student", "username": student.student_id, "name": student.name},
+    }
 
 
 def get_me(db: Session, payload: dict):
@@ -74,3 +77,25 @@ def change_password(db: Session, payload: dict, old_password: str, new_password:
 
     user.password_hash = hash_password(new_password)
     db.commit()
+
+
+def logout(db: Session, payload: dict):
+    jti = payload.get("jti")
+    if not jti:
+        return
+    existing = db.query(TokenBlacklist).filter(TokenBlacklist.jti == jti).first()
+    if existing:
+        return
+    entry = TokenBlacklist(
+        jti=jti,
+        user_sub=payload.get("sub", ""),
+        expires_at=datetime.fromtimestamp(payload.get("exp", 0), tz=timezone.utc),
+    )
+    db.add(entry)
+    db.commit()
+
+
+def is_token_blacklisted(db: Session, jti: str) -> bool:
+    if not jti:
+        return False
+    return db.query(TokenBlacklist).filter(TokenBlacklist.jti == jti).first() is not None

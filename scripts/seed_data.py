@@ -54,14 +54,16 @@ def ensure_schema(cur, conn):
         print(f"  [ERROR] 找不到 init.sql: {init_sql}")
         sys.exit(1)
     sql = init_sql.read_text(encoding="utf-8")
-    try:
-        cur.execute(sql)
-        conn.commit()
-    except Exception as e:
-        conn.rollback()
-        # 表已存在等错误可忽略（IF NOT EXISTS 已覆盖），但其他错误要报
-        if "already exists" not in str(e) and "Duplicate" not in str(type(e).__name__):
-            raise
+    # psycopg2 cursor.execute 不支持多条分号分隔的 SQL 一次性执行，需逐条拆分
+    statements = [s.strip() for s in sql.split(";") if s.strip()]
+    for stmt in statements:
+        try:
+            cur.execute(stmt)
+        except Exception as e:
+            conn.rollback()
+            if "already exists" not in str(e).lower():
+                raise
+    conn.commit()
     print("  [OK] 已执行 init.sql（建表 + 扩展）")
 
 

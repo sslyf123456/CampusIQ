@@ -4,5 +4,6 @@ from .schedule import Schedule
 from .repair_order import RepairOrder
 from .scholarship import ScholarshipRecord
 from .notice import Notice
+from .token_blacklist import TokenBlacklist
 
-__all__ = ["Student", "Admin", "Schedule", "RepairOrder", "ScholarshipRecord", "Notice"]
+__all__ = ["Student", "Admin", "Schedule", "RepairOrder", "ScholarshipRecord", "Notice", "TokenBlacklist"]
