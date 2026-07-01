@@ -68,6 +68,7 @@ def remove_student_from_schedule(db: Session, schedule_id: int, student_id: str)
     student = db.query(Student).filter(Student.student_id == student_id).first()
     if not student:
         raise NotFound(f"学生 {student_id}")
-    if student in s.students:
-        s.students.remove(student)
-        db.commit()
+    if student not in s.students:
+        raise BadRequest(f"学生 {student_id} 已移除此课程")
+    s.students.remove(student)
+    db.commit()

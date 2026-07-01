@@ -4,7 +4,7 @@
 
 - **服务名**: campus-service（校园后台支撑服务）
 - **框架**: Python FastAPI
-- **端口**: 8000
+- **端口**: 8001
 - **认证**: JWT Bearer Token（HS256，24h 过期）
 - **统一响应格式**:
   - 成功: `{"data": {...}}` 或 `{"data": [...], "total": N, "page": N, "page_size": N}`

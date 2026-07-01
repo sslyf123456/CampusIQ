@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -6,9 +8,15 @@ class LoginRequest(BaseModel):
     password: str = Field(..., min_length=1, max_length=64)
 
 
+class LoginUserInfo(BaseModel):
+    role: str
+    username: str
+    name: str
+
+
 class LoginResponse(BaseModel):
     token: str
-    user: dict
+    user: LoginUserInfo
 
 
 class ChangePasswordRequest(BaseModel):

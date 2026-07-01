@@ -1,8 +1,16 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, CheckConstraint
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Table
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from ..database import Base
+
+student_schedule = Table(
+    "student_schedule",
+    Base.metadata,
+    Column("student_id", Integer, ForeignKey("campus.students.id", ondelete="CASCADE"), primary_key=True),
+    Column("schedule_id", Integer, ForeignKey("campus.schedules.id", ondelete="CASCADE"), primary_key=True),
+    schema="campus",
+)
 
 
 class Schedule(Base):

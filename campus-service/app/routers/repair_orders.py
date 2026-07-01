@@ -3,13 +3,14 @@ from sqlalchemy.orm import Session
 
 from ..database import get_db
 from ..dependencies import get_current_user, require_admin, require_student
-from ..schemas.repair_order import RepairOrderCreate, RepairOrderUpdate
+from ..schemas.repair_order import RepairOrderCreate, RepairOrderUpdate, RepairOrderOut
 from ..services import repair_service
+from ..utils.response import PaginatedResponse
 
 router = APIRouter(prefix="/api/campus/repair-orders", tags=["宿舍报修"])
 
 
-@router.get("")
+@router.get("", response_model=PaginatedResponse[RepairOrderOut])
 def list_repair_orders(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
@@ -22,7 +23,7 @@ def list_repair_orders(
     return repair_service.list_repair_orders(db, page, page_size, student_db_id=current_user["db_id"], status=status)
 
 
-@router.get("/{order_id}")
+@router.get("/{order_id}", response_model=RepairOrderOut)
 def get_repair_order(
     order_id: int,
     current_user: dict = Depends(get_current_user),
@@ -33,7 +34,7 @@ def get_repair_order(
     return repair_service.get_repair_order(db, order_id, student_db_id=current_user["db_id"])
 
 
-@router.post("", status_code=201)
+@router.post("", status_code=201, response_model=RepairOrderOut)
 def create_repair_order(
     data: RepairOrderCreate,
     student: dict = Depends(require_student),
@@ -42,11 +43,11 @@ def create_repair_order(
     return repair_service.create_repair_order(db, data, student["db_id"])
 
 
-@router.put("/{order_id}")
+@router.put("/{order_id}", response_model=RepairOrderOut)
 def update_repair_order(
     order_id: int,
     data: RepairOrderUpdate,
-    _=Depends(require_admin),
+    _admin=Depends(require_admin),
     db: Session = Depends(get_db),
 ):
     return repair_service.update_repair_order(db, order_id, data)
