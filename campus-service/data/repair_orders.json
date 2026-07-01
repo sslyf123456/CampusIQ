@@ -1,0 +1,123 @@
+[
+  {
+    "student_id": "20230001",
+    "description": "宿舍灯管坏了，晚上无法照明，需要更换灯管。",
+    "location": "3号楼308",
+    "contact_phone": "13800001111",
+    "status": "pending",
+    "submitted_at": "2026-06-29 14:30:00"
+  },
+  {
+    "student_id": "20230002",
+    "description": "卫生间水龙头关不紧，持续滴水，浪费水资源。",
+    "location": "3号楼309",
+    "contact_phone": "13800002222",
+    "status": "processing",
+    "handler": "维修员张师傅",
+    "handle_note": "已上门查看，需更换水龙头阀芯，预计明天完成。",
+    "submitted_at": "2026-06-30 09:15:00",
+    "processed_at": "2026-06-30 14:00:00"
+  },
+  {
+    "student_id": "20230003",
+    "description": "宿舍空调不制冷，夏天太热影响休息。",
+    "location": "4号楼112",
+    "contact_phone": "13800003333",
+    "status": "completed",
+    "handler": "维修员李师傅",
+    "handle_note": "已加氟利昂，空调恢复正常制冷。",
+    "submitted_at": "2026-06-25 10:00:00",
+    "processed_at": "2026-06-25 15:30:00",
+    "completed_at": "2026-06-26 11:00:00"
+  },
+  {
+    "student_id": "20220045",
+    "description": "宿舍门锁损坏，无法正常锁门，存在安全隐患。",
+    "location": "2号楼205",
+    "contact_phone": "13800004444",
+    "status": "pending",
+    "submitted_at": "2026-07-01 08:00:00"
+  },
+  {
+    "student_id": "20240012",
+    "description": "洗手台下水管漏水，地面总是湿的。",
+    "location": "5号楼506",
+    "contact_phone": "13800005555",
+    "status": "pending",
+    "submitted_at": "2026-06-28 16:20:00"
+  },
+  {
+    "student_id": "20220012",
+    "description": "宿舍窗户玻璃有裂纹，刮风时有异响。",
+    "location": "2号楼311",
+    "contact_phone": "13800006666",
+    "status": "processing",
+    "handler": "维修员赵师傅",
+    "handle_note": "已测量玻璃尺寸，定制中，预计3天后更换。",
+    "submitted_at": "2026-06-27 11:00:00",
+    "processed_at": "2026-06-28 09:30:00"
+  },
+  {
+    "student_id": "20230005",
+    "description": "宿舍电风扇转速不稳定，有时完全停转。",
+    "location": "3号楼520",
+    "contact_phone": "13800007777",
+    "status": "completed",
+    "handler": "维修员张师傅",
+    "handle_note": "更换了风扇电机，已恢复正常运转。",
+    "submitted_at": "2026-06-20 08:30:00",
+    "processed_at": "2026-06-20 13:00:00",
+    "completed_at": "2026-06-21 16:00:00"
+  },
+  {
+    "student_id": "20220033",
+    "description": "暖气片不热，冬天没法取暖。",
+    "location": "1号楼118",
+    "contact_phone": "13800008888",
+    "status": "completed",
+    "handler": "维修员李师傅",
+    "handle_note": "暖气管道排气后恢复正常。",
+    "submitted_at": "2026-06-15 07:00:00",
+    "processed_at": "2026-06-15 10:00:00",
+    "completed_at": "2026-06-15 14:30:00"
+  },
+  {
+    "student_id": "20240030",
+    "description": "马桶堵塞，无法正常冲水。",
+    "location": "5号楼102",
+    "contact_phone": "13800009999",
+    "status": "processing",
+    "handler": "维修员赵师傅",
+    "handle_note": "已疏通部分，仍有轻微堵塞，需更换弯管。",
+    "submitted_at": "2026-06-29 20:00:00",
+    "processed_at": "2026-06-30 08:30:00"
+  },
+  {
+    "student_id": "20230020",
+    "description": "宿舍墙壁有渗水痕迹，怀疑水管漏水。",
+    "location": "4号楼301",
+    "contact_phone": "13800010000",
+    "status": "pending",
+    "submitted_at": "2026-07-01 07:30:00"
+  },
+  {
+    "student_id": "20240008",
+    "description": "阳台晾衣架断裂，无法晾晒衣物。",
+    "location": "5号楼712",
+    "contact_phone": "13800011111",
+    "status": "pending",
+    "submitted_at": "2026-06-30 18:45:00"
+  },
+  {
+    "student_id": "20230002",
+    "description": "宿舍网络接口松动，网线经常断开。",
+    "location": "3号楼309",
+    "contact_phone": "13800002222",
+    "status": "completed",
+    "handler": "维修员张师傅",
+    "handle_note": "更换了网络面板和模块，网络已恢复稳定。",
+    "submitted_at": "2026-06-10 14:00:00",
+    "processed_at": "2026-06-11 09:00:00",
+    "completed_at": "2026-06-11 16:00:00"
+  }
+]

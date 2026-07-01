@@ -1,0 +1,110 @@
+[
+  {
+    "student_id": "20230001",
+    "type": "奖学金",
+    "name": "国家奖学金",
+    "amount": 8000.00,
+    "status": "approved",
+    "semester": "2025-2026-1",
+    "note": "综合测评排名年级前5%，学术论文1篇。"
+  },
+  {
+    "student_id": "20230002",
+    "type": "助学金",
+    "name": "国家助学金",
+    "amount": 3000.00,
+    "status": "pending",
+    "semester": "2025-2026-2",
+    "note": "家庭经济困难认定通过，待审核。"
+  },
+  {
+    "student_id": "20220045",
+    "type": "奖学金",
+    "name": "校级一等奖学金",
+    "amount": 2000.00,
+    "status": "approved",
+    "semester": "2025-2026-1",
+    "note": "GPA 3.8，年级排名第3。"
+  },
+  {
+    "student_id": "20230003",
+    "type": "助学金",
+    "name": "国家助学金",
+    "amount": 3000.00,
+    "status": "rejected",
+    "semester": "2025-2026-1",
+    "note": "家庭经济情况调查未通过复核。"
+  },
+  {
+    "student_id": "20220012",
+    "type": "奖学金",
+    "name": "国家励志奖学金",
+    "amount": 5000.00,
+    "status": "approved",
+    "semester": "2025-2026-1",
+    "note": "品学兼优，家庭经济困难认定通过。"
+  },
+  {
+    "student_id": "20230005",
+    "type": "奖学金",
+    "name": "校级二等奖学金",
+    "amount": 1000.00,
+    "status": "approved",
+    "semester": "2025-2026-2",
+    "note": "GPA 3.5，年级排名前15%。"
+  },
+  {
+    "student_id": "20240012",
+    "type": "助学金",
+    "name": "国家助学金",
+    "amount": 2000.00,
+    "status": "approved",
+    "semester": "2025-2026-2",
+    "note": "家庭经济困难认定通过，建档立卡户。"
+  },
+  {
+    "student_id": "20220033",
+    "type": "奖学金",
+    "name": "学科竞赛奖学金",
+    "amount": 3000.00,
+    "status": "approved",
+    "semester": "2025-2026-1",
+    "note": "全国大学生数学建模竞赛省级一等奖。"
+  },
+  {
+    "student_id": "20230020",
+    "type": "助学金",
+    "name": "校内勤工助学补贴",
+    "amount": 800.00,
+    "status": "pending",
+    "semester": "2025-2026-2",
+    "note": "图书馆勤工助学岗位申请，待审批。"
+  },
+  {
+    "student_id": "20240030",
+    "type": "奖学金",
+    "name": "新生奖学金",
+    "amount": 3000.00,
+    "status": "approved",
+    "semester": "2025-2026-1",
+    "note": "高考成绩排名全省前5%。"
+  },
+  {
+    "student_id": "20240008",
+    "type": "助学金",
+    "name": "国家助学金",
+    "amount": 3000.00,
+    "status": "rejected",
+    "semester": "2025-2026-1",
+    "note": "材料不完整，缺少家庭收入证明。"
+  },
+  {
+    "student_id": "20220045",
+    "type": "奖学金",
+    "name": "校级一等奖学金",
+    "amount": 2000.00,
+    "status": "approved",
+    "semester": "2025-2026-2",
+    "note": "连续两学期保持年级前3名。"
+  }
+]

@@ -1,0 +1,22 @@
+[
+  {"course_name":"高级软件设计","teacher":"刘老师","weekday":1,"start_period":1,"end_period":2,"location":"教学楼A101","start_week":1,"end_week":16,"semester":"2025-2026-2","created_by_username":"admin"},
+  {"course_name":"数据库系统","teacher":"陈老师","weekday":2,"start_period":3,"end_period":4,"location":"教学楼B203","start_week":1,"end_week":16,"semester":"2025-2026-2","created_by_username":"admin"},
+  {"course_name":"人工智能导论","teacher":"赵老师","weekday":3,"start_period":1,"end_period":2,"location":"教学楼C305","start_week":1,"end_week":16,"semester":"2025-2026-2","created_by_username":"admin"},
+  {"course_name":"软件测试","teacher":"孙老师","weekday":4,"start_period":5,"end_period":6,"location":"实验楼D401","start_week":1,"end_week":16,"semester":"2025-2026-2","created_by_username":"admin"},
+  {"course_name":"计算机网络","teacher":"周老师","weekday":5,"start_period":1,"end_period":2,"location":"教学楼A202","start_week":1,"end_week":16,"semester":"2025-2026-2","created_by_username":"admin"},
+  {"course_name":"大学英语（四）","teacher":"吴老师","weekday":1,"start_period":3,"end_period":4,"location":"教学楼B101","start_week":1,"end_week":16,"semester":"2025-2026-2","created_by_username":"admin"},
+  {"course_name":"体育（二）","teacher":"郑老师","weekday":3,"start_period":5,"end_period":6,"location":"体育馆","start_week":1,"end_week":16,"semester":"2025-2026-2","created_by_username":"admin"},
+  {"course_name":"操作系统","teacher":"冯老师","weekday":2,"start_period":1,"end_period":2,"location":"教学楼A301","start_week":1,"end_week":16,"semester":"2025-2026-2","created_by_username":"admin"},
+  {"course_name":"编译原理","teacher":"蒋老师","weekday":4,"start_period":1,"end_period":2,"location":"教学楼B302","start_week":1,"end_week":16,"semester":"2025-2026-2","created_by_username":"admin"},
+  {"course_name":"计算机组成原理","teacher":"沈老师","weekday":1,"start_period":5,"end_period":6,"location":"教学楼C201","start_week":1,"end_week":16,"semester":"2025-2026-2","created_by_username":"admin"},
+  {"course_name":"数据结构与算法","teacher":"韩老师","weekday":3,"start_period":3,"end_period":4,"location":"教学楼A201","start_week":1,"end_week":16,"semester":"2025-2026-2","created_by_username":"admin"},
+  {"course_name":"高等数学（二）","teacher":"杨老师","weekday":2,"start_period":5,"end_period":6,"location":"教学楼D101","start_week":1,"end_week":16,"semester":"2025-2026-2","created_by_username":"admin"},
+  {"course_name":"线性代数","teacher":"朱老师","weekday":4,"start_period":3,"end_period":4,"location":"教学楼D102","start_week":1,"end_week":16,"semester":"2025-2026-2","created_by_username":"admin"},
+  {"course_name":"概率论与数理统计","teacher":"秦老师","weekday":5,"start_period":3,"end_period":4,"location":"教学楼D103","start_week":1,"end_week":16,"semester":"2025-2026-2","created_by_username":"admin"},
+  {"course_name":"Web前端开发","teacher":"许老师","weekday":3,"start_period":1,"end_period":2,"location":"实验楼E201","start_week":1,"end_week":16,"semester":"2025-2026-2","created_by_username":"admin"},
+  {"course_name":"移动应用开发","teacher":"何老师","weekday":5,"start_period":5,"end_period":6,"location":"实验楼E202","start_week":1,"end_week":16,"semester":"2025-2026-2","created_by_username":"admin"},
+  {"course_name":"机器学习","teacher":"吕老师","weekday":1,"start_period":1,"end_period":2,"location":"教学楼C301","start_week":1,"end_week":16,"semester":"2025-2026-2","created_by_username":"admin"},
+  {"course_name":"自然语言处理","teacher":"施老师","weekday":2,"start_period":3,"end_period":4,"location":"教学楼C302","start_week":1,"end_week":16,"semester":"2025-2026-2","created_by_username":"admin"},
+  {"course_name":"云计算导论","teacher":"张老师","weekday":4,"start_period":1,"end_period":2,"location":"教学楼A303","start_week":1,"end_week":16,"semester":"2025-2026-2","created_by_username":"admin"},
+  {"course_name":"大学生心理健康","teacher":"曹老师","weekday":5,"start_period":3,"end_period":4,"location":"教学楼B102","start_week":1,"end_week":16,"semester":"2025-2026-2","created_by_username":"admin"}
+]
