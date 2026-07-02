@@ -78,6 +78,19 @@ def change_password(db: Session, payload: dict, old_password: str, new_password:
     user.password_hash = hash_password(new_password)
     db.commit()
 
+    # 将当前 token 加入黑名单，强制重新登录
+    jti = payload.get("jti")
+    if jti:
+        existing = db.query(TokenBlacklist).filter(TokenBlacklist.jti == jti).first()
+        if not existing:
+            entry = TokenBlacklist(
+                jti=jti,
+                user_sub=payload.get("sub", ""),
+                expires_at=datetime.fromtimestamp(payload.get("exp", 0), tz=timezone.utc),
+            )
+            db.add(entry)
+            db.commit()
+
 
 def logout(db: Session, payload: dict):
     jti = payload.get("jti")

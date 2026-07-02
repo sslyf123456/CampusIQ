@@ -127,4 +127,12 @@ async function handleLogin() {
   background: #409eff;
   border-radius: 1px;
 }
+
+/* 为错误提示预留固定高度，避免提示出现/消失时布局跳动 */
+.login-card :deep(.el-form-item) {
+  margin-bottom: 20px;
+}
+.login-card :deep(.el-form-item__content) {
+  min-height: 52px;
+}
 </style>
