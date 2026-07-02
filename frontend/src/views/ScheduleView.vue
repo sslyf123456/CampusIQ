@@ -71,10 +71,14 @@
           </el-select>
         </el-form-item>
         <el-form-item label="开始节次" prop="start_period">
-          <el-input-number v-model="form.start_period" :min="1" :max="12" />
+          <el-select v-model="form.start_period" placeholder="请选择">
+            <el-option v-for="p in 12" :key="p" :label="`第${p}节`" :value="p" />
+          </el-select>
         </el-form-item>
         <el-form-item label="结束节次" prop="end_period">
-          <el-input-number v-model="form.end_period" :min="1" :max="12" />
+          <el-select v-model="form.end_period" placeholder="请选择">
+            <el-option v-for="p in 12" :key="p" :label="`第${p}节`" :value="p" />
+          </el-select>
         </el-form-item>
         <el-form-item label="教室" prop="location">
           <el-input v-model="form.location" />
@@ -117,11 +121,43 @@ const editingId = ref<number | null>(null)
 const form = ref<Partial<Schedule>>({})
 
 const rules = {
-  course_name: [{ required: true, message: '请输入课程名称', trigger: 'blur' }],
+  course_name: [
+    { required: true, message: '请输入课程名称', trigger: 'blur' },
+    { max: 128, message: '最多128个字符', trigger: 'blur' },
+  ],
   weekday: [{ required: true, message: '请选择星期', trigger: 'change' }],
-  start_period: [{ required: true, message: '请输入开始节次', trigger: 'blur' }],
-  end_period: [{ required: true, message: '请输入结束节次', trigger: 'blur' }],
-  semester: [{ required: true, message: '请输入学期', trigger: 'blur' }],
+  start_period: [
+    { required: true, message: '请输入开始节次', trigger: 'blur' },
+    { type: 'number', min: 1, max: 12, message: '节次范围 1-12', trigger: 'blur' },
+  ],
+  end_period: [
+    { required: true, message: '请输入结束节次', trigger: 'blur' },
+    { type: 'number', min: 1, max: 12, message: '节次范围 1-12', trigger: 'blur' },
+    {
+      validator: (_rule: any, value: number, callback: any) => {
+        if (value < form.value.start_period) callback(new Error('结束节次不能小于开始节次'))
+        else callback()
+      },
+      trigger: 'blur',
+    },
+  ],
+  start_week: [
+    { type: 'number', min: 1, max: 20, message: '周次范围 1-20', trigger: 'blur' },
+  ],
+  end_week: [
+    { type: 'number', min: 1, max: 20, message: '周次范围 1-20', trigger: 'blur' },
+    {
+      validator: (_rule: any, value: number, callback: any) => {
+        if (value < form.value.start_week) callback(new Error('结束周次不能小于开始周次'))
+        else callback()
+      },
+      trigger: 'blur',
+    },
+  ],
+  semester: [
+    { required: true, message: '请输入学期', trigger: 'blur' },
+    { pattern: /^\d{4}-\d{4}-[12]$/, message: '格式如 2025-2026-1', trigger: 'blur' },
+  ],
 }
 
 async function loadData() {
@@ -190,9 +226,24 @@ onMounted(loadData)
 </script>
 
 <style scoped>
-.schedule-page { max-width: 1200px; margin: 0 auto; height: 100%; }
-.schedule-page :deep(.el-card) { height: 100%; display: flex; flex-direction: column; }
-.schedule-page :deep(.el-card__body) { flex: 1; display: flex; flex-direction: column; }
+.schedule-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  height: 100%;
+}
+
+.schedule-page :deep(.el-card) {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.schedule-page :deep(.el-card__body) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
 .page-header {
   display: flex;
   justify-content: space-between;
@@ -200,7 +251,18 @@ onMounted(loadData)
   margin-bottom: 20px;
   flex-shrink: 0;
 }
-.page-header h2 { font-size: 18px; font-weight: 500; color: #303133; }
-.schedule-page :deep(.el-table) { border: 1px solid #ebeef5; border-radius: 4px; box-sizing: border-box; }
-.schedule-page :deep(.el-table__inner-wrapper) { border: none; }
+
+.page-header h2 {
+  font-size: 18px;
+  font-weight: 500;
+  color: #303133;
+}
+
+.schedule-page :deep(.el-table) {
+  border-radius: 4px;
+}
+
+.schedule-page :deep(.el-table__inner-wrapper) {
+  border: none;
+}
 </style>

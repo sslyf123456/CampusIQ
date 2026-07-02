@@ -19,7 +19,7 @@
         <el-table-column label="发布时间" width="170">
           <template #default="{ row }">{{ formatTime(row.published_at) }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
+        <el-table-column label="操作" :width="isAdmin ? 200 : 80" fixed="right">
           <template #default="{ row }">
             <el-button size="small" @click="showDetail(row)">查看</el-button>
             <template v-if="isAdmin">
@@ -98,7 +98,10 @@ const formRef = ref()
 const form = ref<Partial<Notice>>({})
 
 const rules = {
-  title: [{ required: true, message: '请输入标题', trigger: 'blur' }],
+  title: [
+    { required: true, message: '请输入标题', trigger: 'blur' },
+    { max: 255, message: '最多255个字符', trigger: 'blur' },
+  ],
   content: [{ required: true, message: '请输入正文', trigger: 'blur' }],
   category: [{ required: true, message: '请选择分类', trigger: 'change' }],
 }
@@ -175,13 +178,62 @@ onMounted(loadData)
 </script>
 
 <style scoped>
-.notice-page { max-width: 1200px; margin: 0 auto; height: 100%; }
-.notice-page :deep(.el-card) { height: 100%; display: flex; flex-direction: column; }
-.notice-page :deep(.el-card__body) { flex: 1; display: flex; flex-direction: column; }
-.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 8px; flex-shrink: 0; }
-.page-header h2 { font-size: 18px; font-weight: 500; color: #303133; }
-.notice-page :deep(.el-table) { border: 1px solid #ebeef5; border-radius: 4px; box-sizing: border-box; }
-.notice-page :deep(.el-table__inner-wrapper) { border: none; }
-.notice-detail .meta { display: flex; gap: 16px; color: #909399; font-size: 13px; margin-bottom: 16px; }
-.notice-detail .content { white-space: pre-wrap; line-height: 1.8; color: #303133; }
+.notice-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  height: 100%;
+}
+
+.notice-page :deep(.el-card) {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.notice-page :deep(.el-card__body) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.page-header h2 {
+  font-size: 18px;
+  font-weight: 500;
+  color: #303133;
+}
+
+.notice-page :deep(.el-table) {
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.notice-page :deep(.el-table__inner-wrapper) {
+  border: none;
+}
+
+.notice-detail .meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  color: #909399;
+  font-size: 13px;
+  margin-bottom: 16px;
+}
+
+.notice-detail .content {
+  white-space: pre-wrap;
+  line-height: 1.8;
+  color: #303133;
+}
 </style>

@@ -53,7 +53,7 @@ const router = createRouter({
   ],
 })
 
-router.beforeEach((to, _from, next) => {
+router.beforeEach(async (to, _from, next) => {
   const auth = useAuthStore()
   const requiresAuth = to.matched.some(r => r.meta.requiresAuth)
   const isGuest = to.matched.some(r => r.meta.guest)
@@ -62,6 +62,14 @@ router.beforeEach((to, _from, next) => {
     next('/login')
   } else if (isGuest && auth.isLoggedIn) {
     next('/')
+  } else if (auth.isLoggedIn && !auth.user) {
+    try {
+      await auth.fetchProfile()
+      next()
+    } catch {
+      await auth.logout()
+      next('/login')
+    }
   } else {
     next()
   }

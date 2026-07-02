@@ -23,7 +23,7 @@
         <el-table-column label="处理时间" width="170">
           <template #default="{ row }">{{ formatTime(row.processed_at) || formatTime(row.completed_at) || '-' }}</template>
         </el-table-column>
-        <el-table-column label="操作" width="160" fixed="right" v-if="isAdmin">
+        <el-table-column label="操作" width="80" fixed="right" v-if="isAdmin">
           <template #default="{ row }">
             <el-button size="small" @click="showHandleDlg(row)">处理</el-button>
           </template>
@@ -52,17 +52,17 @@
 
     <!-- 管理员处理弹窗 -->
     <el-dialog title="处理工单" v-model="handleVisible" width="500px">
-      <el-form :model="handleForm" label-width="100px">
-        <el-form-item label="状态">
+      <el-form :model="handleForm" :rules="handleRules" ref="handleRef" label-width="100px">
+        <el-form-item label="状态" prop="status">
           <el-select v-model="handleForm.status">
             <el-option label="处理中" value="processing" />
             <el-option label="已完成" value="completed" />
           </el-select>
         </el-form-item>
-        <el-form-item label="处理人">
+        <el-form-item label="处理人" prop="handler">
           <el-input v-model="handleForm.handler" />
         </el-form-item>
-        <el-form-item label="处理备注">
+        <el-form-item label="处理备注" prop="handle_note">
           <el-input v-model="handleForm.handle_note" type="textarea" :rows="2" />
         </el-form-item>
       </el-form>
@@ -93,6 +93,10 @@ const createRef = ref()
 const createForm = ref({ description: '', location: '', contact_phone: '' })
 const createRules = {
   description: [{ required: true, message: '请输入问题描述', trigger: 'blur' }],
+  location: [{ max: 128, message: '最多128个字符', trigger: 'blur' }],
+  contact_phone: [
+    { pattern: /^1[3-9]\d{9}$/, message: '请输入正确的手机号', trigger: 'blur' },
+  ],
 }
 
 function showCreateDlg() {
@@ -121,6 +125,11 @@ const handleVisible = ref(false)
 const handleForm = ref<{ id: number; status: string; handler: string; handle_note: string }>({
   id: 0, status: 'processing', handler: '', handle_note: ''
 })
+const handleRef = ref()
+const handleRules = {
+  status: [{ required: true, message: '请选择状态', trigger: 'change' }],
+  handler: [{ max: 64, message: '最多64个字符', trigger: 'blur' }],
+}
 function showHandleDlg(row: RepairOrder) {
   handleForm.value = {
     id: row.id,
@@ -131,6 +140,8 @@ function showHandleDlg(row: RepairOrder) {
   handleVisible.value = true
 }
 async function handleSave() {
+  const valid = await handleRef.value?.validate().catch(() => false)
+  if (!valid) return
   saving.value = true
   try {
     await updateRepairOrderApi(handleForm.value.id, {
@@ -166,13 +177,45 @@ onMounted(loadData)
 </script>
 
 <style scoped>
-.repair-page { max-width: 1200px; margin: 0 auto; height: 100%; }
-.repair-page :deep(.el-card) { height: 100%; display: flex; flex-direction: column; }
-.repair-page :deep(.el-card__body) { flex: 1; display: flex; flex-direction: column; }
-.page-header {
-  display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-shrink: 0;
+.repair-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  height: 100%;
 }
-.page-header h2 { font-size: 18px; font-weight: 500; color: #303133; }
-.repair-page :deep(.el-table) { border: 1px solid #ebeef5; border-radius: 4px; box-sizing: border-box; }
-.repair-page :deep(.el-table__inner-wrapper) { border: none; }
+
+.repair-page :deep(.el-card) {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.repair-page :deep(.el-card__body) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+.page-header h2 {
+  font-size: 18px;
+  font-weight: 500;
+  color: #303133;
+}
+
+.repair-page :deep(.el-table) {
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.repair-page :deep(.el-table__inner-wrapper) {
+  border: none;
+}
 </style>

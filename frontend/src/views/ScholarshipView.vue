@@ -43,12 +43,10 @@
         <el-form-item label="奖项名称" prop="name">
           <el-input v-model="form.name" />
         </el-form-item>
-        <el-form-item label="金额">
-          <el-input-number
-            :model-value="form.amount != null ? Number(form.amount) : undefined"
-            :min="0"
-            :precision="2"
-            @update:model-value="(v: number | undefined) => form.amount = v != null ? v.toFixed(2) : undefined"
+        <el-form-item label="金额" prop="amount">
+          <el-input
+            v-model="form.amount"
+            placeholder="请输入金额"
           />
         </el-form-item>
         <el-form-item label="状态" prop="status">
@@ -96,9 +94,30 @@ const form = ref<Partial<ScholarshipRecord>>({})
 
 const rules = {
   type: [{ required: true, message: '请选择类型', trigger: 'change' }],
-  name: [{ required: true, message: '请输入奖项名称', trigger: 'blur' }],
+  name: [
+    { required: true, message: '请输入奖项名称', trigger: 'blur' },
+    { max: 128, message: '最多128个字符', trigger: 'blur' },
+  ],
+  amount: [
+    { required: true, message: '请输入金额', trigger: 'blur' },
+    {
+      validator: (_rule: any, value: string, callback: any) => {
+        if (!/^\d+(\.\d{1,2})?$/.test(value)) {
+          callback(new Error('金额须为数字，最多两位小数'))
+        } else if (parseFloat(value) < 0) {
+          callback(new Error('金额不能为负数'))
+        } else {
+          callback()
+        }
+      },
+      trigger: 'blur',
+    },
+  ],
   status: [{ required: true, message: '请选择状态', trigger: 'change' }],
-  semester: [{ required: true, message: '请输入学期', trigger: 'blur' }],
+  semester: [
+    { required: true, message: '请输入学期', trigger: 'blur' },
+    { pattern: /^\d{4}-\d{4}-[12]$/, message: '格式如 2025-2026-1', trigger: 'blur' },
+  ],
 }
 
 async function loadData() {
@@ -166,11 +185,45 @@ onMounted(loadData)
 </script>
 
 <style scoped>
-.scholarship-page { max-width: 1200px; margin: 0 auto; height: 100%; }
-.scholarship-page :deep(.el-card) { height: 100%; display: flex; flex-direction: column; }
-.scholarship-page :deep(.el-card__body) { flex: 1; display: flex; flex-direction: column; }
-.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-shrink: 0; }
-.page-header h2 { font-size: 18px; font-weight: 500; color: #303133; }
-.scholarship-page :deep(.el-table) { border: 1px solid #ebeef5; border-radius: 4px; box-sizing: border-box; }
-.scholarship-page :deep(.el-table__inner-wrapper) { border: none; }
+.scholarship-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  height: 100%;
+}
+
+.scholarship-page :deep(.el-card) {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.scholarship-page :deep(.el-card__body) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-shrink: 0;
+}
+
+.page-header h2 {
+  font-size: 18px;
+  font-weight: 500;
+  color: #303133;
+}
+
+.scholarship-page :deep(.el-table) {
+  border: 1px solid #ebeef5;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+.scholarship-page :deep(.el-table__inner-wrapper) {
+  border: none;
+}
 </style>
