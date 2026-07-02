@@ -59,16 +59,18 @@ def ensure_schema(cur, conn):
     for stmt in statements:
         try:
             cur.execute(stmt)
+            conn.commit()  # 每条语句独立提交，避免 rollback 影响后续语句
         except Exception as e:
             conn.rollback()
             if "already exists" not in str(e).lower():
                 raise
-    conn.commit()
+            # already exists 是预期错误（重复运行幂等），跳过即可
     print("  [OK] 已执行 init.sql（建表 + 扩展）")
 
 
 def truncate_all(cur):
     tables = [
+        "campus.token_blacklist",
         "campus.student_schedule",
         "campus.repair_orders",
         "campus.scholarship_records",
@@ -225,6 +227,7 @@ def verify(cur):
         ("campus.repair_orders", "宿舍报修"),
         ("campus.scholarship_records", "奖助记录"),
         ("campus.notices", "通知"),
+        ("campus.token_blacklist", "Token黑名单"),
     ]
     print("\n--- 导入结果验证 ---")
     for t, label in tables:
