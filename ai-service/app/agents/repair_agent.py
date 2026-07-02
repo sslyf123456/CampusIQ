@@ -33,12 +33,12 @@ class RepairAgent:
         self.model = settings.LLM_MODEL_NAME
         self.name = "RepairAgent"
 
-    async def process(self, repair_data: dict | None, user_question: str) -> str:
+    async def run(self, query: str, **kwargs) -> str:
         """处理报修查询请求。
 
         Args:
-            repair_data: campus-service 返回的报修数据（字典或 None）
-            user_question: 用户原始问题
+            query: 用户原始问题
+            **kwargs: 包含 repair_data 的关键字参数
 
         Returns:
             str: Agent 处理结果摘要
@@ -46,13 +46,14 @@ class RepairAgent:
         Raises:
             LLMError: LLM 调用异常时抛出
         """
+        repair_data = kwargs.get("repair_data")
         if repair_data is None:
             return "报修数据获取失败，无法为您查询报修进度。请稍后再试或联系宿管办。"
 
         repair_str = json.dumps(repair_data, ensure_ascii=False, indent=2)
         prompt = REPAIR_PROMPT_TEMPLATE.format(
             repair_data=repair_str,
-            user_question=user_question,
+            user_question=query,
         )
 
         try:
@@ -63,7 +64,7 @@ class RepairAgent:
                 max_tokens=800,
             )
             result = response.choices[0].message.content or ""
-            logger.info(f"RepairAgent 处理完成, 问题: {user_question[:50]}...")
+            logger.info(f"RepairAgent 处理完成, 问题: {query[:50]}...")
             return result
         except Exception as e:
             logger.error(f"RepairAgent LLM 调用异常: {e}", exc_info=True)

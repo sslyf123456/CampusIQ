@@ -41,7 +41,7 @@ class ConversationResponse(BaseModel):
     """会话列表/详情响应 Schema。"""
 
     id: int = Field(..., description="会话ID")
-    student_id: str = Field(..., description="学号")
+    student_id: int = Field(..., description="学生数据库ID")
     title: str = Field(..., description="会话标题")
     status: str = Field(..., description="会话状态")
     created_at: datetime = Field(..., description="创建时间")
@@ -52,7 +52,7 @@ class ConversationDetailResponse(BaseModel):
     """会话详情响应（含消息列表）Schema。"""
 
     id: int = Field(..., description="会话ID")
-    student_id: str = Field(..., description="学号")
+    student_id: int = Field(..., description="学生数据库ID")
     title: str = Field(..., description="会话标题")
     status: str = Field(..., description="会话状态")
     created_at: datetime = Field(..., description="创建时间")

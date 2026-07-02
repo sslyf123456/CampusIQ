@@ -17,6 +17,7 @@ from sqlalchemy.orm import Session
 from openai import AsyncOpenAI
 
 from app.config import settings
+from app.models.conversation import Conversation
 from app.schemas.chat import SSEEvent
 from app.agents.master_agent import MasterAgent
 from app.agents.schedule_agent import ScheduleAgent
@@ -89,6 +90,15 @@ class ChatService:
         """
         try:
             # 1. 确保会话存在
+            if conversation_id:
+                # 验证传入的 conversation_id 是否真的存在于数据库
+                existing_conv = db.query(Conversation).filter(
+                    Conversation.id == conversation_id
+                ).first()
+                if not existing_conv:
+                    logger.warning(f"conversation_id={conversation_id} 不存在，自动创建新会话")
+                    conversation_id = None  # 标记为需要创建新会话
+
             if not conversation_id:
                 conv = self.conversation_service.create_conversation(db, student_db_id)
                 conversation_id = conv.id
@@ -205,7 +215,7 @@ class ChatService:
                     max_tokens=1000,
                     stream=True,
                 )
-                for chunk in stream:
+                async for chunk in stream:
                     if chunk.choices[0].delta.content:
                         text = chunk.choices[0].delta.content
                         full_answer += text

@@ -99,3 +99,15 @@ class MasterAgent:
         except Exception as e:
             logger.error(f"意图识别 LLM 调用异常: {e}", exc_info=True)
             raise LLMError(f"意图识别失败: {str(e)}") from e
+
+    async def run(self, query: str, **kwargs) -> IntentResult:
+        """Agent 核心执行方法（供 ChatService 统一调用）。
+
+        Args:
+            query: 用户查询内容
+            **kwargs: 扩展参数（当前未使用）
+
+        Returns:
+            IntentResult: 意图识别结果
+        """
+        return await self.identify_intent(query)

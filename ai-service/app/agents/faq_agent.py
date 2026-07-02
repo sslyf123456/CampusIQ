@@ -35,12 +35,12 @@ class FAQAgent:
         self.name = "FAQAgent"
         self.vector_store = VectorStore()
 
-    async def process(self, user_question: str, db) -> str:
+    async def run(self, query: str, **kwargs) -> str:
         """处理 FAQ 知识库查询请求。
 
         Args:
-            user_question: 用户原始问题
-            db: 数据库会话（用于向量检索）
+            query: 用户原始问题
+            **kwargs: 包含 db 的关键字参数（用于向量检索）
 
         Returns:
             str: Agent 处理结果摘要
@@ -48,11 +48,12 @@ class FAQAgent:
         Raises:
             LLMError: LLM 调用异常时抛出
         """
+        db = kwargs.get("db")
         # 通过向量检索获取相关文档片段
         from app.rag.embedding import get_embedding
 
         try:
-            query_embedding = await get_embedding(user_question)
+            query_embedding = await get_embedding(query)
             similar_docs = self.vector_store.search_similar(db, query_embedding, top_k=5)
 
             if not similar_docs:
@@ -68,7 +69,7 @@ class FAQAgent:
 
             prompt = FAQ_PROMPT_TEMPLATE.format(
                 faq_context=faq_context,
-                user_question=user_question,
+                user_question=query,
             )
 
             response = await self.client.chat.completions.create(
@@ -78,7 +79,7 @@ class FAQAgent:
                 max_tokens=800,
             )
             result = response.choices[0].message.content or ""
-            logger.info(f"FAQAgent 处理完成, 问题: {user_question[:50]}...")
+            logger.info(f"FAQAgent 处理完成, 问题: {query[:50]}...")
             return result
         except Exception as e:
             logger.error(f"FAQAgent 处理异常: {e}", exc_info=True)

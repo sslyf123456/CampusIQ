@@ -33,12 +33,12 @@ class ScheduleAgent:
         self.model = settings.LLM_MODEL_NAME
         self.name = "ScheduleAgent"
 
-    async def process(self, schedule_data: dict | None, user_question: str) -> str:
+    async def run(self, query: str, **kwargs) -> str:
         """处理课表查询请求。
 
         Args:
-            schedule_data: campus-service 返回的课表数据（字典或 None）
-            user_question: 用户原始问题
+            query: 用户原始问题
+            **kwargs: 包含 schedule_data 的关键字参数
 
         Returns:
             str: Agent 处理结果摘要
@@ -46,13 +46,14 @@ class ScheduleAgent:
         Raises:
             LLMError: LLM 调用异常时抛出
         """
+        schedule_data = kwargs.get("schedule_data")
         if schedule_data is None:
             return "课表数据获取失败，无法为您查询课程安排。请稍后再试或联系教务处。"
 
         schedule_str = json.dumps(schedule_data, ensure_ascii=False, indent=2)
         prompt = SCHEDULE_PROMPT_TEMPLATE.format(
             schedule_data=schedule_str,
-            user_question=user_question,
+            user_question=query,
         )
 
         try:
@@ -63,7 +64,7 @@ class ScheduleAgent:
                 max_tokens=800,
             )
             result = response.choices[0].message.content or ""
-            logger.info(f"ScheduleAgent 处理完成, 问题: {user_question[:50]}...")
+            logger.info(f"ScheduleAgent 处理完成, 问题: {query[:50]}...")
             return result
         except Exception as e:
             logger.error(f"ScheduleAgent LLM 调用异常: {e}", exc_info=True)

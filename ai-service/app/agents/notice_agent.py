@@ -33,12 +33,12 @@ class NoticeAgent:
         self.model = settings.LLM_MODEL_NAME
         self.name = "NoticeAgent"
 
-    async def process(self, notice_data: dict | None, user_question: str) -> str:
+    async def run(self, query: str, **kwargs) -> str:
         """处理通知检索请求。
 
         Args:
-            notice_data: campus-service 返回的通知数据（字典或 None）
-            user_question: 用户原始问题
+            query: 用户原始问题
+            **kwargs: 包含 notice_data 的关键字参数
 
         Returns:
             str: Agent 处理结果摘要
@@ -46,13 +46,14 @@ class NoticeAgent:
         Raises:
             LLMError: LLM 调用异常时抛出
         """
+        notice_data = kwargs.get("notice_data")
         if notice_data is None:
             return "通知数据获取失败，无法为您检索通知信息。请稍后再试或查看学校官网。"
 
         notice_str = json.dumps(notice_data, ensure_ascii=False, indent=2)
         prompt = NOTICE_PROMPT_TEMPLATE.format(
             notice_data=notice_str,
-            user_question=user_question,
+            user_question=query,
         )
 
         try:
@@ -63,7 +64,7 @@ class NoticeAgent:
                 max_tokens=800,
             )
             result = response.choices[0].message.content or ""
-            logger.info(f"NoticeAgent 处理完成, 问题: {user_question[:50]}...")
+            logger.info(f"NoticeAgent 处理完成, 问题: {query[:50]}...")
             return result
         except Exception as e:
             logger.error(f"NoticeAgent LLM 调用异常: {e}", exc_info=True)

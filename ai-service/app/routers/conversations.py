@@ -76,7 +76,7 @@ async def list_conversations(
         List[ConversationResponse]: 用户会话列表
     """
     user_info = extract_user_from_token(authorization)
-    student_id = user_info["sub"]  # 使用学号作为 student_id
+    student_id = user_info["db_id"]  # 使用数据库主键ID（与 Conversation.student_id Integer 类型一致）
     conversations = conversation_service.get_conversations(db, student_id)
     return conversations
 
@@ -98,7 +98,7 @@ async def create_conversation(
         ConversationResponse: 新创建的会话
     """
     user_info = extract_user_from_token(authorization)
-    student_id = user_info["sub"]  # 使用学号作为 student_id
+    student_id = user_info["db_id"]  # 使用数据库主键ID
     conversation = conversation_service.create_conversation(db, student_id, request.title)
     return conversation
 
@@ -120,7 +120,7 @@ async def get_conversation_detail(
         ConversationDetailResponse: 会话详情及消息列表
     """
     user_info = extract_user_from_token(authorization)
-    student_id = user_info["sub"]  # 使用学号作为 student_id
+    student_id = user_info["db_id"]  # 使用数据库主键ID
     conversation = conversation_service.get_conversation(db, conversation_id, student_id)
     if not conversation:
         raise HTTPException(status_code=404, detail="会话不存在或不属于当前用户")
@@ -144,7 +144,7 @@ async def close_conversation(
         dict: 操作结果
     """
     user_info = extract_user_from_token(authorization)
-    student_id = user_info["sub"]  # 使用学号作为 student_id
+    student_id = user_info["db_id"]  # 使用数据库主键ID
     conversation = conversation_service.close_conversation(db, conversation_id, student_id)
     if not conversation:
         raise HTTPException(status_code=404, detail="会话不存在或不属于当前用户")
