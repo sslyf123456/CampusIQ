@@ -6,22 +6,33 @@ import logging
 from openai import AsyncOpenAI
 
 from app.config import settings
+from app.prompts import get_system_prompt
 from app.utils.exceptions import LLMError
 
 logger = logging.getLogger(__name__)
 
 SCHOLARSHIP_PROMPT_TEMPLATE = """你是一个校园奖助学金查询助手。根据以下奖助学金数据，回答用户的问题。
 
-奖助学金数据：
+奖助学金数据（JSON）：
 {scholarship_data}
+
+字段说明：
+- type: 奖助类型（如奖学金、助学金等）
+- name: 奖助名称
+- amount: 金额（元）
+- status: 审批状态（pending=待审批, approved=已通过, rejected=已驳回）
+- semester: 所属学期（如2025-2026-2）
+- note: 备注
+- student_no / student_name: 学生学号和姓名
+- created_at / updated_at: 创建和更新时间
 
 用户问题：{user_question}
 
 对话历史（最近消息）：
 {history_context}
 
-请根据奖助学金数据给出清晰、准确的回答。如果数据为空，请告知用户暂无奖助学金信息。
-回答时请整理奖助学金信息，包括名称、金额、申请条件、截止日期等。
+请严格根据奖助学金数据回答，不要编造数据中不存在的信息。如果数据为空，请告知用户暂无奖助学金信息。
+回答时请整理奖助学金信息，包括名称、类型、金额、状态、学期等。
 注意：回答中不要使用任何emoji表情符号，用纯文字即可。"""
 
 
@@ -62,10 +73,14 @@ class ScholarshipAgent:
             history_context=history_context or "（无历史消息）",
         )
 
+        role = kwargs.get("role", "student")
         try:
             response = await self.client.chat.completions.create(
                 model=self.model,
-                messages=[{"role": "user", "content": prompt}],
+                messages=[
+                    {"role": "system", "content": get_system_prompt(role)},
+                    {"role": "user", "content": prompt},
+                ],
                 temperature=0.3,
                 max_tokens=800,
             )

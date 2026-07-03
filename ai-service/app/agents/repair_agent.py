@@ -6,22 +6,34 @@ import logging
 from openai import AsyncOpenAI
 
 from app.config import settings
+from app.prompts import get_system_prompt
 from app.utils.exceptions import LLMError
 
 logger = logging.getLogger(__name__)
 
 REPAIR_PROMPT_TEMPLATE = """你是一个校园宿舍报修查询助手。根据以下报修数据，回答用户的问题。
 
-报修数据：
+报修数据（JSON）：
 {repair_data}
+
+字段说明：
+- description: 报修问题描述
+- location: 报修地点
+- status: 处理状态（pending=待处理, processing=处理中, completed=已完成）
+- handler: 处理人
+- handle_note: 处理备注
+- submitted_at: 提交时间
+- processed_at: 处理时间
+- completed_at: 完成时间
+- student_no / student_name: 报修学生学号和姓名
 
 用户问题：{user_question}
 
 对话历史（最近消息）：
 {history_context}
 
-请根据报修数据给出清晰、准确的回答。如果报修数据为空，请告知用户暂无报修记录。
-回答时请整理报修信息，包括报修类型、提交时间、当前状态等。
+请严格根据报修数据回答，不要编造数据中不存在的信息。如果报修数据为空，请告知用户暂无报修记录。
+回答时请整理报修信息，包括报修描述、地点、当前状态、提交时间等。
 注意：回答中不要使用任何emoji表情符号，用纯文字即可。"""
 
 
@@ -62,10 +74,14 @@ class RepairAgent:
             history_context=history_context or "（无历史消息）",
         )
 
+        role = kwargs.get("role", "student")
         try:
             response = await self.client.chat.completions.create(
                 model=self.model,
-                messages=[{"role": "user", "content": prompt}],
+                messages=[
+                    {"role": "system", "content": get_system_prompt(role)},
+                    {"role": "user", "content": prompt},
+                ],
                 temperature=0.3,
                 max_tokens=800,
             )

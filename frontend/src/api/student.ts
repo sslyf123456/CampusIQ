@@ -1,5 +1,6 @@
 import request from './request'
 import type { Student, StudentListResponse, StudentCreate, StudentUpdate } from '@/types/student'
+import type { Schedule } from '@/types/schedule'
 
 // 列表：后端返回 { data: [...], total, page, page_size }
 export async function getStudentsApi(params?: { keyword?: string; page?: number; page_size?: number }) {
@@ -25,4 +26,10 @@ export async function updateStudentApi(studentId: string, data: StudentUpdate) {
 
 export async function deleteStudentApi(studentId: string) {
   await request.delete(`/campus/students/${studentId}`)
+}
+
+// 管理员：查看学生选课列表
+export async function getStudentSchedulesApi(studentId: string) {
+  const res = await request.get<Schedule[]>(`/campus/students/${studentId}/schedules`)
+  return res.data
 }

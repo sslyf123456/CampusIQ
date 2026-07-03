@@ -108,6 +108,7 @@ data: {}
 - `repair`: 宿舍报修查询 Agent
 - `scholarship`: 奖助学金查询 Agent
 - `notice`: 通知检索 Agent
+- `student`: 学生信息查询 Agent（仅管理员）
 - `faq`: FAQ 知识库兜底 Agent
 
 **意图识别结果**:
@@ -118,9 +119,16 @@ data: {}
 | repair | 询问报修进度、报修记录等 | repair |
 | scholarship | 询问奖学金、助学金等 | scholarship |
 | notice | 寻找校园通知、公告等 | notice |
+| student | 询问学生名单、学生详情、院系学生等（仅管理员） | student |
 | faq | 校园常见问题（选课、宿舍管理等） | faq |
 | unclear | 问题不明确 | clarify 反问 |
 | out_of_scope | 问题超出校园服务范围 | error + 兜底消息 |
+
+**角色化系统提示词**: ai-service 根据 JWT 中的 `role` 字段（student / admin）注入不同的系统提示词：
+- **学生版**: 强调个人数据范围（仅本人课表/报修/奖助），语气亲切友好
+- **管理员版**: 强调全校数据范围，语气专业简洁，便于管理决策
+- **服务器时间注入**: 系统提示词末尾自动拼接服务器当前时间（含星期），格式如 `当前服务器时间：2026年07月04日 星期六 00:20`，使 AI 能正确理解"本学期""本周""今天"等相对时间词
+- **注入范围**: 全链路生效 — MasterAgent 意图识别、所有 Sub-Agent LLM 调用、最终回答 LLM 调用，均通过 `get_system_prompt(role)` 统一注入
 
 **错误响应**:
 ```json

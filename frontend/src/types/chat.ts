@@ -10,6 +10,8 @@ export interface SSEEventData {
   question?: string
   message?: string
   fallback?: boolean
+  conversation_id?: number
+  title?: string
 }
 
 /** 消息 */

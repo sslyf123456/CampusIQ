@@ -14,9 +14,7 @@ import logging
 from typing import AsyncGenerator, Optional
 
 from sqlalchemy.orm import Session
-from openai import AsyncOpenAI
 
-from app.config import settings
 from app.models.conversation import Conversation
 from app.schemas.chat import SSEEvent
 from app.agents.master_agent import MasterAgent
@@ -24,6 +22,7 @@ from app.agents.schedule_agent import ScheduleAgent
 from app.agents.repair_agent import RepairAgent
 from app.agents.scholarship_agent import ScholarshipAgent
 from app.agents.notice_agent import NoticeAgent
+from app.agents.student_agent import StudentAgent
 from app.agents.faq_agent import FAQAgent
 from app.services.campus_client import CampusClient
 from app.services.conversation_service import ConversationService
@@ -31,20 +30,6 @@ from app.utils.exceptions import LLMError, CampusServiceError
 from app.utils.exceptions import FALLBACK_MESSAGES
 
 logger = logging.getLogger(__name__)
-
-# 最终回答的 LLM Prompt 模板
-ANSWER_PROMPT_TEMPLATE = """你是一个校园智能问答助手。请根据以下信息，生成对用户问题的自然语言回答。
-
-用户问题：{user_question}
-
-Agent 处理结果：
-{agent_result}
-
-要求：
-1. 用自然、友好的语言回答，不要生硬地罗列数据
-2. 如果数据为空或 Agent 返回兜底提示，请如实告知用户
-3. 回答要简洁清晰，不要过长
-4. 不要使用任何emoji表情符号，用纯文字即可"""
 
 
 class ChatService:
@@ -59,15 +44,11 @@ class ChatService:
             "repair": RepairAgent(),
             "scholarship": ScholarshipAgent(),
             "notice": NoticeAgent(),
+            "student": StudentAgent(),
             "faq": FAQAgent(),
         }
         self.campus_client = CampusClient()
         self.conversation_service = ConversationService()
-        self.llm_client = AsyncOpenAI(
-            api_key=settings.LLM_API_KEY,
-            base_url=settings.LLM_BASE_URL,
-        )
-        self.llm_model = settings.LLM_MODEL_NAME
 
     async def stream_chat(
         self,
@@ -76,6 +57,7 @@ class ChatService:
         student_db_id: int,
         conversation_id: Optional[int],
         user_message: str,
+        role: str = "student",
     ) -> AsyncGenerator[SSEEvent, None]:
         """对话编排主流程 — 意图识别 → 路由 → Sub-Agent → SSE 流式输出。
 
@@ -85,6 +67,7 @@ class ChatService:
             student_db_id: 学生数据库主键ID（从 JWT 的 db_id 字段获取）
             conversation_id: 会话ID（为空则自动创建）
             user_message: 用户消息内容
+            role: 用户角色（student / admin），用于注入角色化系统提示词
 
         Yields:
             SSEEvent: SSE 事件（thinking/agent_call/result/error/done/clarify）
@@ -99,6 +82,10 @@ class ChatService:
                 if not existing_conv:
                     logger.warning(f"conversation_id={conversation_id} 不存在，自动创建新会话")
                     conversation_id = None  # 标记为需要创建新会话
+                elif existing_conv.title == "新对话":
+                    # 第一次对话时，用用户问题更新会话标题
+                    new_title = user_message[:20] + ("..." if len(user_message) > 20 else "")
+                    self.conversation_service.update_title(db, conversation_id, new_title)
 
             if not conversation_id:
                 # 用用户第一个问题作为会话标题（截取前20字）
@@ -123,8 +110,10 @@ class ChatService:
                 "clarify": False,
             }))
 
-            # 5. Master Agent 意图识别（传入历史上下文）
-            intent_result = await self.master_agent.run(user_message, history_context=history_context)
+            # 5. Master Agent 意图识别（传入历史上下文和角色）
+            intent_result = await self.master_agent.run(
+                user_message, history_context=history_context, role=role
+            )
 
             # 6. 根据意图结果路由
             if intent_result.intent == "unclear":
@@ -163,21 +152,28 @@ class ChatService:
             agent_result = None
 
             if intent_result.intent == "schedule":
-                schedule_data = await self.campus_client.get_schedule(token)
+                # 当用户提到"本学期/这学期/当前学期"等相对时间时，
+                # Master Agent 会从 system prompt 中读取 current_semester 并写入 IntentResult.semester；
+                # 这里把 semester 透传给 campus-service 内部接口做精确数据筛选。
+                semester = intent_result.semester or ""
+                schedule_data = await self.campus_client.get_schedule(token, semester=semester)
                 agent_result = await self.sub_agents["schedule"].run(
-                    user_message, history_context=history_context, schedule_data=schedule_data
+                    user_message, history_context=history_context,
+                    role=role, schedule_data=schedule_data
                 )
 
             elif intent_result.intent == "repair":
                 repair_data = await self.campus_client.get_repair(token)
                 agent_result = await self.sub_agents["repair"].run(
-                    user_message, history_context=history_context, repair_data=repair_data
+                    user_message, history_context=history_context,
+                    role=role, repair_data=repair_data
                 )
 
             elif intent_result.intent == "scholarship":
                 scholarship_data = await self.campus_client.get_scholarship(token)
                 agent_result = await self.sub_agents["scholarship"].run(
-                    user_message, history_context=history_context, scholarship_data=scholarship_data
+                    user_message, history_context=history_context,
+                    role=role, scholarship_data=scholarship_data
                 )
 
             elif intent_result.intent == "notice":
@@ -189,60 +185,39 @@ class ChatService:
                     keyword = ""
                 notice_data = await self.campus_client.get_notices(token, keyword)
                 agent_result = await self.sub_agents["notice"].run(
-                    user_message, history_context=history_context, notice_data=notice_data
+                    user_message, history_context=history_context,
+                    role=role, notice_data=notice_data
+                )
+
+            elif intent_result.intent == "student":
+                # 学生信息查询仅管理员可用，campus_client 会根据 JWT 返回数据或 None
+                student_data = await self.campus_client.get_students(token)
+                agent_result = await self.sub_agents["student"].run(
+                    user_message, history_context=history_context,
+                    role=role, student_data=student_data
                 )
 
             elif intent_result.intent == "faq":
                 agent_result = await self.sub_agents["faq"].run(
-                    user_message, history_context=history_context, db=db
+                    user_message, history_context=history_context, role=role, db=db
                 )
 
             else:
                 # 未知意图 → FAQ 兜底
                 agent_result = await self.sub_agents["faq"].run(
-                    user_message, history_context=history_context, db=db
+                    user_message, history_context=history_context, role=role, db=db
                 )
 
-            # 8. 使用 LLM 流式生成最终自然语言回答（SSE result 事件，逐 token 推送）
-            answer_prompt = ANSWER_PROMPT_TEMPLATE.format(
-                user_question=user_message,
-                agent_result=agent_result,
-            )
-
-            messages = []
-            if history_context:
-                messages.append({"role": "system", "content": f"对话历史:\n{history_context}"})
-            messages.append({"role": "user", "content": answer_prompt})
-
-            full_answer = ""
-            try:
-                stream = await self.llm_client.chat.completions.create(
-                    model=self.llm_model,
-                    messages=messages,
-                    temperature=0.5,
-                    max_tokens=1000,
-                    stream=True,
-                )
-                async for chunk in stream:
-                    if chunk.choices[0].delta.content:
-                        text = chunk.choices[0].delta.content
-                        full_answer += text
-                        yield SSEEvent(event="result", data=json.dumps({
-                            "content": text,
-                            "agent": agent_name,
-                        }))
-            except Exception as e:
-                logger.error(f"LLM 流式生成异常: {e}", exc_info=True)
-                if agent_result:
-                    full_answer = agent_result
-                    yield SSEEvent(event="result", data=json.dumps({
-                        "content": agent_result,
-                        "agent": agent_name,
-                    }))
-                else:
-                    yield SSEEvent(event="error", data=json.dumps({
-                        "message": FALLBACK_MESSAGES["llm_error"],
-                    }))
+            # 8. 直接使用 Sub-Agent 结果作为最终回答
+            # Sub-Agent 内部已通过 LLM 生成完整自然语言回答，无需二次 LLM 调用
+            full_answer = agent_result or FALLBACK_MESSAGES["general_error"]
+            chunk_size = 120
+            for i in range(0, len(full_answer), chunk_size):
+                chunk = full_answer[i:i + chunk_size]
+                yield SSEEvent(event="result", data=json.dumps({
+                    "content": chunk,
+                    "agent": agent_name,
+                }))
 
             # 9. 保存 AI 回复到数据库
             self.conversation_service.add_message(
@@ -250,8 +225,12 @@ class ChatService:
                 agent_name=agent_name,
             )
 
-            # 10. 推送 done 事件 — 流结束
-            yield SSEEvent(event="done", data=json.dumps({}))
+            # 10. 推送 done 事件 — 流结束，附带会话标题（供前端刷新）
+            conv = db.query(Conversation).filter(Conversation.id == conversation_id).first()
+            yield SSEEvent(event="done", data=json.dumps({
+                "conversation_id": conversation_id,
+                "title": conv.title if conv else "",
+            }))
 
         except LLMError as e:
             logger.error(f"ChatService LLM 错误: {e}", exc_info=True)

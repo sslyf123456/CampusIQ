@@ -5,7 +5,14 @@
         <!-- 左侧会话列表 -->
         <div class="sidebar">
           <div class="sidebar-header">
-            <el-button type="primary" size="small" @click="handleNewConversation" style="width: 100%;">
+            <el-button
+              type="primary"
+              size="small"
+              plain
+              :icon="Plus"
+              class="new-conv-btn"
+              @click="handleNewConversation"
+            >
               新建对话
             </el-button>
           </div>
@@ -40,8 +47,13 @@
                 <!-- AI 消息 -->
                 <div v-else-if="msg.role === 'assistant'" class="message-row ai">
                   <!-- 推理过程（可折叠） -->
-                  <el-collapse v-if="msg.steps && msg.steps.length" class="steps-collapse">
-                    <el-collapse-item title="推理过程">
+                  <el-collapse
+                    v-if="msg.steps && msg.steps.length"
+                    class="steps-collapse"
+                    :model-value="msg.stepsExpanded ? ['1'] : []"
+                    @change="(val: string[]) => msg.stepsExpanded = val.length > 0"
+                  >
+                    <el-collapse-item name="1" title="推理过程">
                       <div v-for="(step, si) in msg.steps" :key="si" class="step-item">
                         <span v-if="step.type === 'thinking'" class="step-thinking">{{ step.content }}</span>
                         <span v-else-if="step.type === 'agent_call'" class="step-agent">
@@ -50,16 +62,13 @@
                       </div>
                     </el-collapse-item>
                   </el-collapse>
-                  <div class="bubble ai-bubble">{{ msg.content }}</div>
+                  <!-- 正在输入提示（内容为空时） -->
+                  <div v-if="!msg.content" class="typing-indicator">
+                    <span></span><span></span><span></span>
+                  </div>
+                  <div v-else class="bubble ai-bubble markdown-body" v-html="formatMessage(msg.content)"></div>
                 </div>
               </template>
-
-              <!-- 正在输入提示 -->
-              <div v-if="thinking" class="message-row ai">
-                <div class="typing-indicator">
-                  <span></span><span></span><span></span>
-                </div>
-              </div>
             </div>
 
             <!-- 输入区 -->
@@ -67,7 +76,7 @@
               <el-input
                 v-model="inputText"
                 type="textarea"
-                :rows="2"
+                :rows="3"
                 placeholder="输入你的问题..."
                 :disabled="thinking"
                 @keyup.enter.ctrl="handleSend"
@@ -80,7 +89,7 @@
                 @click="handleSend"
                 class="send-btn"
               >
-                发送
+                <el-icon v-if="!thinking" :size="18"><Top /></el-icon>
               </el-button>
             </div>
           </template>
@@ -91,10 +100,12 @@
             <p class="empty-title">AI 校园问答助手</p>
             <p class="empty-desc">点击"新建对话"开始提问</p>
             <div class="suggestions">
-              <div class="suggestion-item" @click="quickAsk('我这周有什么课？')">我这周有什么课？</div>
-              <div class="suggestion-item" @click="quickAsk('我的宿舍报修处理了吗？')">我的宿舍报修处理了吗？</div>
-              <div class="suggestion-item" @click="quickAsk('我的奖学金发了吗？')">我的奖学金发了吗？</div>
-              <div class="suggestion-item" @click="quickAsk('奖学金怎么申请？')">奖学金怎么申请？</div>
+              <div
+                v-for="(s, i) in suggestions"
+                :key="i"
+                class="suggestion-item"
+                @click="quickAsk(s)"
+              >{{ s }}</div>
             </div>
           </div>
         </div>
@@ -104,9 +115,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, nextTick } from 'vue'
+import { ref, nextTick, computed } from 'vue'
 import { ElMessage } from 'element-plus'
-import { Close, ChatDotRound } from '@element-plus/icons-vue'
+import { Close, ChatDotRound, Plus, Top } from '@element-plus/icons-vue'
+import { useAuthStore } from '@/stores/auth'
 import {
   getConversationsApi,
   createConversationApi,
@@ -118,15 +130,65 @@ import type { Conversation, ChatMessage, AgentStep, SSEEventType, SSEEventData }
 
 const conversations = ref<Conversation[]>([])
 const currentConversationId = ref<number | null>(null)
-const messages = ref<(ChatMessage & { steps?: AgentStep[] })[]>([])
+const messages = ref<(ChatMessage & { steps?: AgentStep[]; stepsExpanded?: boolean })[]>([])
 const inputText = ref('')
 const thinking = ref(false)
 const messageListRef = ref<HTMLElement>()
+
+const authStore = useAuthStore()
+
+/** 预设问题 — 按角色区分 */
+const suggestions = computed<string[]>(() => {
+  if (authStore.role === 'admin') {
+    return [
+      '有哪些待处理的报修？',
+      '最近发布了哪些通知？',
+      '本学期的奖助记录有哪些？',
+      '全校有哪些学生？',
+      '本学期开设了哪些课程？',
+      '新生怎么入住宿舍？',
+    ]
+  }
+  return [
+    '我这周有什么课？',
+    '我的宿舍报修处理了吗？',
+    '我的奖学金发了吗？',
+    '新生怎么入住宿舍？',
+  ]
+})
 
 /** 格式化时间 */
 function formatTime(t: string): string {
   if (!t) return ''
   return t.replace('T', ' ').slice(0, 16)
+}
+
+/** 格式化 AI 消息内容（支持加粗、换行、列表等基本排版） */
+function formatMessage(content: string): string {
+  if (!content) return ''
+
+  // 先转义 HTML 特殊字符
+  let html = content
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+
+  // **加粗**
+  html = html.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+  // `代码`
+  html = html.replace(/`([^`]+)`/g, '<code>$1</code>')
+
+  // 把 " - **周一**: ..." 这种内联分段拆成独立段落
+  html = html.replace(/ - (\*\*[^*]+\*\*:)/g, '\n\n$1')
+
+  // 单换行转 <br>
+  html = html.replace(/\n/g, '<br>')
+
+  // 按空行分段，每段包成 <p>
+  return html
+    .split(/<br><br>/)
+    .map((p) => `<p>${p}</p>`)
+    .join('')
 }
 
 /** 滚动到底部 */
@@ -166,7 +228,7 @@ async function handleSelectConversation(id: number) {
   messages.value = []
   try {
     const detail = await getConversationDetailApi(id)
-    messages.value = detail.messages.map(m => ({ ...m }))
+    messages.value = detail.messages.map(m => ({ ...m, stepsExpanded: false }))
     scrollToBottom()
   } catch {
     ElMessage.error('加载会话失败')
@@ -226,8 +288,8 @@ async function handleSend() {
   inputText.value = ''
   scrollToBottom()
 
-  // 准备 AI 消息占位
-  const aiMsg: ChatMessage & { steps?: AgentStep[] } = {
+  // 立即添加 AI 消息占位，推理过程气泡马上可见
+  messages.value.push({
     id: Date.now() + 1,
     conversation_id: currentConversationId.value!,
     role: 'assistant',
@@ -235,9 +297,10 @@ async function handleSend() {
     agent_name: null,
     created_at: new Date().toISOString(),
     steps: [],
-  }
-  messages.value.push(aiMsg)
-  const aiMsgIndex = messages.value.length - 1  // 记录索引，通过响应式 Proxy 修改
+    stepsExpanded: true,
+  })
+  const aiMsgIndex = messages.value.length - 1
+  const aiSteps = messages.value[aiMsgIndex].steps!
   scrollToBottom()
 
   thinking.value = true
@@ -246,14 +309,16 @@ async function handleSend() {
     await chatStreamApi(currentConversationId.value, text, (event, data) => {
       switch (event as SSEEventType) {
         case 'thinking':
-          messages.value[aiMsgIndex].steps!.push({ type: 'thinking', content: data.content || '思考中...' })
+          aiSteps.push({ type: 'thinking', content: data.content || '思考中...' })
+          scrollToBottom()
           break
         case 'agent_call':
-          messages.value[aiMsgIndex].steps!.push({
+          aiSteps.push({
             type: 'agent_call',
             content: data.description || '',
             agent: data.agent,
           })
+          scrollToBottom()
           break
         case 'result':
           messages.value[aiMsgIndex].content += data.content || ''
@@ -266,6 +331,13 @@ async function handleSend() {
           messages.value[aiMsgIndex].content = data.message || '抱歉，处理时出现错误'
           break
         case 'done':
+          // 回答完成，折叠推理过程
+          messages.value[aiMsgIndex].stepsExpanded = false
+          // 更新侧边栏会话标题
+          if (data.conversation_id && data.title) {
+            const conv = conversations.value.find(c => c.id === data.conversation_id)
+            if (conv) conv.title = data.title
+          }
           break
       }
     })
@@ -324,6 +396,22 @@ loadConversations()
   border-bottom: 1px solid #e4e7ed;
 }
 
+.new-conv-btn {
+  width: 100%;
+  border-radius: 6px;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+.new-conv-btn:hover {
+  background: #ecf5ff;
+  color: #409eff;
+}
+
+.new-conv-btn :deep(.el-icon) {
+  margin-right: 6px;
+}
+
 .conversation-list {
   flex: 1;
   overflow-y: auto;
@@ -342,12 +430,15 @@ loadConversations()
 }
 
 .conversation-item.active {
-  background: #ecf5ff;
+  background: #fdf6ec;
+  border-left: none;
+  padding-left: 16px;
 }
 
 .conv-title {
   font-size: 14px;
   color: #303133;
+  font-weight: 500;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -436,6 +527,39 @@ loadConversations()
   border: 1px solid #e4e7ed;
 }
 
+.markdown-body p {
+  margin: 0 0 10px;
+  line-height: 1.7;
+}
+
+.markdown-body p:last-child {
+  margin-bottom: 0;
+}
+
+.markdown-body strong {
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+.markdown-body code {
+  background: #f4f4f5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: Consolas, Monaco, monospace;
+  font-size: 13px;
+  color: #d73a49;
+}
+
+.markdown-body ul {
+  margin: 8px 0;
+  padding-left: 20px;
+}
+
+.markdown-body li {
+  margin-bottom: 6px;
+  line-height: 1.6;
+}
+
 /* 推理过程折叠面板 */
 .steps-collapse {
   width: 70%;
@@ -516,20 +640,46 @@ loadConversations()
 
 /* 输入区 */
 .input-area {
+  position: relative;
   padding: 16px 24px;
   border-top: 1px solid #e4e7ed;
-  display: flex;
-  gap: 12px;
-  align-items: flex-end;
   background: #fff;
 }
 
-.input-area :deep(.el-textarea) {
-  flex: 1;
+.input-area :deep(.el-textarea__inner) {
+  height: 120px !important;
+  font-size: 15px;
+  line-height: 1.6;
+  padding-right: 60px;
+  padding-bottom: 16px;
 }
 
 .send-btn {
-  flex-shrink: 0;
+  position: absolute;
+  right: 36px;
+  bottom: 28px;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  min-height: 36px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(64, 158, 255, 0.3);
+}
+
+.send-btn :deep(.el-icon),
+.send-btn :deep(.is-loading) {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.send-btn :deep(.el-icon svg) {
+  display: block;
 }
 
 /* 空状态 */

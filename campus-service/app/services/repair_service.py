@@ -3,8 +3,9 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 
 from ..models.repair_order import RepairOrder
+from ..models.student import Student
 from ..utils.exceptions import NotFound, Forbidden
-from ..schemas.repair_order import RepairOrderCreate, RepairOrderUpdate
+from ..schemas.repair_order import RepairOrderCreate, RepairOrderUpdate, RepairOrderOut
 
 
 def _parse_dt(s: str | None) -> datetime | None:
@@ -20,13 +21,21 @@ def _parse_dt(s: str | None) -> datetime | None:
 
 
 def list_repair_orders(db: Session, page: int = 1, page_size: int = 20, student_db_id: int = None, status: str = ""):
-    q = db.query(RepairOrder)
+    q = db.query(RepairOrder, Student.student_id, Student.name).join(
+        Student, RepairOrder.student_id == Student.id
+    )
     if student_db_id:
         q = q.filter(RepairOrder.student_id == student_db_id)
     if status:
         q = q.filter(RepairOrder.status == status)
     total = q.count()
-    items = q.order_by(RepairOrder.submitted_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
+    rows = q.order_by(RepairOrder.submitted_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
+    items = []
+    for order, sno, sname in rows:
+        item = RepairOrderOut.model_validate(order).model_dump()
+        item["student_no"] = sno
+        item["student_name"] = sname
+        items.append(item)
     return {"data": items, "total": total, "page": page, "page_size": page_size}
 
 

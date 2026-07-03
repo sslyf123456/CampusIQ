@@ -19,6 +19,9 @@ class IntentResult(BaseModel):
     confidence: float = Field(..., ge=0.0, le=1.0, description="意图置信度")
     clarify_question: Optional[str] = Field(None, description="模糊意图时的反问建议")
     keyword: Optional[str] = Field(None, description="提取的关键词（如通知检索关键词）")
+    semester: Optional[str] = Field(
+        None, description="课表查询的学期筛选（如 2025-2026-2）；用户提到本学期/这学期时由 MasterAgent 推算并填充"
+    )
 
 
 class SSEEvent(BaseModel):

@@ -248,6 +248,38 @@
 
 ---
 
+### GET /api/campus/students/{student_id}/schedules — 查看学生选课信息
+
+**权限**: admin
+
+**路径参数**:
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| student_id | string | 学号字符串（如 "20230001"） |
+
+**响应**: 直接返回课程对象数组（ScheduleOut[]），无外层 data 包装
+
+```json
+[
+  {
+    "id": 1,
+    "course_name": "高级软件设计",
+    "teacher": "刘老师",
+    "weekday": 1,
+    "start_period": 1,
+    "end_period": 2,
+    "location": "教学楼A101",
+    "start_week": 1,
+    "end_week": 16,
+    "semester": "2025-2026-2"
+  }
+]
+```
+
+**排序**: 学期降序 → 周几升序 → 开始节次升序 → 结束节次升序 → ID 升序
+
+---
+
 ## 3. 课表管理 `/api/campus/schedules`
 
 ### GET /api/campus/schedules — 课表列表
@@ -307,7 +339,52 @@
 }
 ```
 
-**排序**: 学期降序（新学年优先） → 周几升序（周一优先） → ID 升序
+**排序**: 学期降序（新学年优先） → 周几升序（周一优先） → 开始节次升序 → 结束节次升序 → ID 升序
+
+---
+
+### GET /api/campus/schedules/semesters — 获取全部学期列表
+
+**权限**: 需登录
+
+**说明**: 返回所有不重复的学期标识，按降序排列。用于前端学期筛选下拉框，避免依赖分页列表数据导致选项不全。
+
+**响应**:
+```json
+["2025-2026-2", "2025-2026-1", "2024-2025-2"]
+```
+
+---
+
+### GET /api/campus/schedules/{schedule_id}/students — 查看选课学生
+
+**权限**: admin
+
+**路径参数**:
+| 参数 | 类型 | 说明 |
+|------|------|------|
+| schedule_id | int | 课程 ID |
+
+**响应**: 直接返回学生对象数组（StudentOut[]），无外层 data 包装
+
+```json
+[
+  {
+    "id": 1,
+    "student_id": "20230001",
+    "name": "张三",
+    "gender": "male",
+    "department": "计算机科学与技术",
+    "major": "软件工程",
+    "phone": "13800001111",
+    "email": "zhangsan@campus.edu.cn",
+    "birth_date": "2004-03-15",
+    "enrollment_year": 2023,
+    "dorm_building": "3号楼",
+    "dorm_room": "308"
+  }
+]
+```
 
 ---
 
@@ -416,6 +493,8 @@
     {
       "id": 1,
       "student_id": 1,
+      "student_no": "20230001",
+      "student_name": "张三",
       "description": "宿舍灯管坏了",
       "location": "3号楼308",
       "contact_phone": "13800001111",
@@ -432,6 +511,8 @@
   "page_size": 20
 }
 ```
+
+**说明**: 管理员端响应包含 `student_no`（学号字符串）和 `student_name`（姓名）字段，用于展示报修发起人信息。
 
 ---
 
@@ -721,6 +802,8 @@
     {
       "id": 1,
       "student_id": 1,
+      "student_no": "20230001",
+      "student_name": "张三",
       "description": "宿舍灯管坏了",
       "location": "3号楼308",
       "contact_phone": "13800001111",
@@ -789,6 +872,42 @@
       "created_by": 1
     }
   ]
+}
+```
+
+---
+
+### GET /api/campus/internal/students — 查询学生信息
+
+**权限**: JWT(仅管理员)
+
+**说明**: 供 ai-service 的 StudentAgent 调用，非管理员 JWT 返回 403。
+
+**参数**:
+| 参数 | 类型 | 默认值 | 说明 |
+|------|------|--------|------|
+| keyword | string | "" | 搜索关键词（学号/姓名/院系模糊匹配），返回最多 100 条 |
+
+**响应**:
+```json
+{
+  "data": [
+    {
+      "id": 1,
+      "student_id": "20230001",
+      "name": "张三",
+      "gender": "male",
+      "department": "计算机科学与技术",
+      "major": "软件工程",
+      "phone": "13800001111",
+      "email": "zhangsan@campus.edu.cn",
+      "birth_date": "2004-03-15",
+      "enrollment_year": 2023,
+      "dorm_building": "3号楼",
+      "dorm_room": "308"
+    }
+  ],
+  "total": 15
 }
 ```
 

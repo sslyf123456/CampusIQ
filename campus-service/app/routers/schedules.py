@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from ..database import get_db
 from ..dependencies import get_current_user, require_admin
 from ..schemas.schedule import ScheduleCreate, ScheduleUpdate, AddStudentsRequest, ScheduleOut
+from ..schemas.student import StudentOut
 from ..services import schedule_service
 from ..utils.response import PaginatedResponse, DataResponse, MessageResponse
 
@@ -22,7 +23,18 @@ def list_schedules(
         courses = schedule_service.get_my_schedules(db, current_user["db_id"], semester)
         courses_out = [ScheduleOut.model_validate(c).model_dump() for c in courses]
         return {"data": courses_out}
-    return schedule_service.list_schedules(db, page, page_size, semester)
+    result = schedule_service.list_schedules(db, page, page_size, semester)
+    courses_out = [ScheduleOut.model_validate(c).model_dump() for c in result["data"]]
+    return {"data": courses_out, "total": result["total"], "page": result["page"], "page_size": result["page_size"]}
+
+
+@router.get("/semesters", response_model=list[str])
+def list_semesters(
+    _user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    """获取所有不重复的学期列表（降序），用于前端筛选下拉框。"""
+    return schedule_service.get_all_semesters(db)
 
 
 @router.get("/{schedule_id}", response_model=ScheduleOut)
@@ -83,3 +95,12 @@ def remove_student(
 ):
     schedule_service.remove_student_from_schedule(db, schedule_id, student_id)
     return {"detail": "移除成功"}
+
+
+@router.get("/{schedule_id}/students", response_model=list[StudentOut])
+def get_schedule_students(
+    schedule_id: int,
+    _admin=Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    return schedule_service.get_schedule_students(db, schedule_id)

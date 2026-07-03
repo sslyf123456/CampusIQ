@@ -21,6 +21,8 @@ class RepairOrderUpdate(BaseModel):
 class RepairOrderOut(BaseModel):
     id: int
     student_id: int
+    student_no: Optional[str] = None
+    student_name: Optional[str] = None
     description: str
     location: Optional[str]
     contact_phone: Optional[str]

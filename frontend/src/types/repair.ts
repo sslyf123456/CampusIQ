@@ -1,6 +1,8 @@
 export interface RepairOrder {
   id: number
   student_id: number
+  student_no?: string
+  student_name?: string
   description: string
   location?: string
   contact_phone?: string

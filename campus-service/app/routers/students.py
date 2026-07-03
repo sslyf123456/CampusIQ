@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from ..database import get_db
 from ..dependencies import require_admin
 from ..schemas.student import StudentCreate, StudentUpdate, StudentOut
+from ..schemas.schedule import ScheduleOut
 from ..services import student_service
 from ..utils.response import PaginatedResponse, MessageResponse
 
@@ -57,3 +58,12 @@ def delete_student(
 ):
     student_service.delete_student(db, student_id)
     return {"detail": "删除成功"}
+
+
+@router.get("/{student_id}/schedules", response_model=list[ScheduleOut])
+def get_student_schedules(
+    student_id: str,
+    _admin=Depends(require_admin),
+    db: Session = Depends(get_db),
+):
+    return student_service.get_student_schedules(db, student_id)

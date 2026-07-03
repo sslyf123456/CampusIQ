@@ -7,6 +7,8 @@
       </div>
 
       <el-table :data="list" stripe empty-text="暂无报修记录">
+        <el-table-column v-if="isAdmin" prop="student_no" label="学号" width="120" />
+        <el-table-column v-if="isAdmin" prop="student_name" label="姓名" width="100" />
         <el-table-column prop="description" label="问题描述" min-width="200" />
         <el-table-column prop="location" label="地点" width="120" />
         <el-table-column prop="contact_phone" label="联系电话" width="130" />

@@ -80,6 +80,7 @@ async def chat_stream(
     """
     user_info = extract_user_from_token(authorization)
     db_id = user_info["db_id"]  # 使用数据库主键ID（与 conversations.student_id 一致）
+    role = user_info["role"]  # 用户角色（student / admin）
     token = authorization.split(" ")[1] if authorization else ""
 
     async def event_generator():
@@ -89,6 +90,7 @@ async def chat_stream(
                 db=db,
                 token=token,
                 student_db_id=db_id,
+                role=role,
                 conversation_id=request.conversation_id,
                 user_message=request.message,
             ):

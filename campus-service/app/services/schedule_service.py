@@ -11,11 +11,13 @@ def list_schedules(db: Session, page: int = 1, page_size: int = 50, semester: st
     if semester:
         q = q.filter(Schedule.semester == semester)
     total = q.count()
-    # 排序：学年降序(新学年优先) -> 周几升序(周一优先) -> ID升序
+    # 排序：学期降序 -> 周几升序 -> 开始节次升序 -> 结束节次升序 -> ID升序
     items = (
         q.order_by(
             Schedule.semester.desc(),
             Schedule.weekday.asc(),
+            Schedule.start_period.asc(),
+            Schedule.end_period.asc(),
             Schedule.id.asc(),
         )
         .offset((page - 1) * page_size)
@@ -41,10 +43,18 @@ def get_my_schedules(db: Session, student_db_id: int, semester: str = ""):
         q.order_by(
             Schedule.semester.desc(),
             Schedule.weekday.asc(),
+            Schedule.start_period.asc(),
+            Schedule.end_period.asc(),
             Schedule.id.asc(),
         )
         .all()
     )
+
+
+def get_all_semesters(db: Session) -> list[str]:
+    """返回所有不重复的学期列表，按降序排列。"""
+    rows = db.query(Schedule.semester).distinct().all()
+    return sorted([r[0] for r in rows], reverse=True)
 
 
 def get_schedule(db: Session, schedule_id: int):
@@ -97,3 +107,8 @@ def remove_student_from_schedule(db: Session, schedule_id: int, student_id: str)
         raise BadRequest(f"学生 {student_id} 已移除此课程")
     s.students.remove(student)
     db.commit()
+
+
+def get_schedule_students(db: Session, schedule_id: int):
+    s = get_schedule(db, schedule_id)
+    return s.students

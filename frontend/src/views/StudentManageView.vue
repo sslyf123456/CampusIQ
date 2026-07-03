@@ -22,13 +22,15 @@
         <el-table-column prop="major" label="专业" min-width="140" />
         <el-table-column prop="enrollment_year" label="入学年份" width="100" />
         <el-table-column prop="phone" label="电话" width="130" />
+        <el-table-column prop="email" label="邮箱" min-width="180" show-overflow-tooltip />
         <el-table-column label="宿舍" width="120">
           <template #default="{ row }">
             {{ [row.dorm_building, row.dorm_room].filter(Boolean).join(' ') || '-' }}
           </template>
         </el-table-column>
-        <el-table-column label="操作" width="160" fixed="right">
+        <el-table-column label="操作" width="230" fixed="right">
           <template #default="{ row }">
+            <el-button size="small" @click="showCoursesDlg(row)">选课信息</el-button>
             <el-button size="small" @click="showDlg(row)">编辑</el-button>
             <el-button size="small" type="danger" @click="handleDelete(row)">删除</el-button>
           </template>
@@ -97,15 +99,34 @@
         <el-button type="primary" :loading="saving" @click="handleSave">保存</el-button>
       </template>
     </el-dialog>
+
+    <!-- 选课查看弹窗 -->
+    <el-dialog :title="`${coursesStudentName} 的选课列表`" v-model="coursesVisible" width="720px">
+      <el-table :data="coursesList" stripe empty-text="该学生暂无选课记录" v-loading="coursesLoading" max-height="400">
+        <el-table-column prop="semester" label="学期" width="130" />
+        <el-table-column prop="course_name" label="课程名称" min-width="140" />
+        <el-table-column prop="teacher" label="任课老师" width="100" />
+        <el-table-column label="星期" width="70" :formatter="(r: any) => WEEKDAY_MAP[r.weekday]" />
+        <el-table-column label="节次" width="100">
+          <template #default="{ row }">第{{ row.start_period }}–{{ row.end_period }}节</template>
+        </el-table-column>
+        <el-table-column prop="location" label="教室" width="100" />
+      </el-table>
+      <template #footer>
+        <el-button @click="coursesVisible = false">关闭</el-button>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
-import { getStudentsApi, createStudentApi, updateStudentApi, deleteStudentApi } from '@/api/student'
+import { getStudentsApi, createStudentApi, updateStudentApi, deleteStudentApi, getStudentSchedulesApi } from '@/api/student'
 import { GENDER_MAP } from '@/types/student'
+import { WEEKDAY_MAP } from '@/types/schedule'
 import type { Student, StudentCreate, StudentUpdate } from '@/types/student'
+import type { Schedule } from '@/types/schedule'
 
 const list = ref<Student[]>([])
 const loading = ref(false)
@@ -254,6 +275,26 @@ async function handleDelete(row: Student) {
 }
 
 onMounted(loadData)
+
+// 选课查看
+const coursesVisible = ref(false)
+const coursesLoading = ref(false)
+const coursesList = ref<Schedule[]>([])
+const coursesStudentName = ref('')
+
+async function showCoursesDlg(row: Student) {
+  coursesStudentName.value = `${row.name}（${row.student_id}）`
+  coursesVisible.value = true
+  coursesLoading.value = true
+  coursesList.value = []
+  try {
+    coursesList.value = await getStudentSchedulesApi(row.student_id)
+  } catch {
+    ElMessage.error('加载选课列表失败')
+  } finally {
+    coursesLoading.value = false
+  }
+}
 </script>
 
 <style scoped>

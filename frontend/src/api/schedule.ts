@@ -1,5 +1,6 @@
 import request from './request'
 import type { Schedule, ScheduleListResponse } from '@/types/schedule'
+import type { Student } from '@/types/student'
 
 // 学生和管理员共用：后端根据 JWT role 区分返回数据
 // 后端返回格式：{ data: [...], total, page, page_size }
@@ -33,4 +34,16 @@ export async function addScheduleStudentsApi(id: number, studentIds: string[]) {
 // 管理员：移除选课学生
 export async function removeScheduleStudentApi(scheduleId: number, studentId: string) {
   await request.delete(`/campus/schedules/${scheduleId}/students/${studentId}`)
+}
+
+// 获取所有学期列表（用于筛选下拉框）
+export async function getSemestersApi() {
+  const res = await request.get<string[]>('/campus/schedules/semesters')
+  return res.data
+}
+
+// 管理员：查看选课学生列表
+export async function getScheduleStudentsApi(scheduleId: number) {
+  const res = await request.get<Student[]>(`/campus/schedules/${scheduleId}/students`)
+  return res.data
 }

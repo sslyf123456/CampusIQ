@@ -6,6 +6,7 @@ import logging
 from openai import AsyncOpenAI
 
 from app.config import settings
+from app.prompts import get_system_prompt
 from app.rag.vector_store import VectorStore
 from app.utils.exceptions import LLMError
 
@@ -78,9 +79,13 @@ class FAQAgent:
                 history_context=history_context or "（无历史消息）",
             )
 
+            role = kwargs.get("role", "student")
             response = await self.client.chat.completions.create(
                 model=self.model,
-                messages=[{"role": "user", "content": prompt}],
+                messages=[
+                    {"role": "system", "content": get_system_prompt(role)},
+                    {"role": "user", "content": prompt},
+                ],
                 temperature=0.3,
                 max_tokens=800,
             )

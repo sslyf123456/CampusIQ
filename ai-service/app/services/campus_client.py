@@ -25,24 +25,27 @@ class CampusClient:
         self.base_url = settings.CAMPUS_SERVICE_URL
         self.client = httpx.AsyncClient(timeout=REQUEST_TIMEOUT)
 
-    async def get_schedule(self, token: str) -> Optional[dict]:
+    async def get_schedule(self, token: str, semester: str = "") -> Optional[dict]:
         """查询课表 — 调用 GET /api/campus/internal/schedule。
 
         Args:
             token: 用户 JWT token（将原样透传给 campus-service）
+            semester: 学期筛选（格式如 "2025-2026-2"），为空时返回所有学期
 
         Returns:
             Optional[dict]: 课表数据，接口异常时返回 None
         """
         try:
+            params = {}
+            if semester:
+                params["semester"] = semester
             response = await self.client.get(
                 f"{self.base_url}/api/campus/internal/schedule",
                 headers={"Authorization": f"Bearer {token}"},
+                params=params,
             )
             response.raise_for_status()
-            data = response.json()
-            logger.info(f"课表查询成功, 返回数据条数: {len(data.get('data', []))}")
-            return data
+            return response.json()
         except httpx.TimeoutException:
             logger.warning("课表查询超时")
             return None
@@ -140,6 +143,39 @@ class CampusClient:
             return None
         except Exception as e:
             logger.error(f"通知查询异常: {e}", exc_info=True)
+            return None
+
+    async def get_students(self, token: str, keyword: str = "") -> Optional[dict]:
+        """查询学生信息 — 调用 GET /api/campus/internal/students（仅管理员）。
+
+        Args:
+            token: 用户 JWT token
+            keyword: 搜索关键词（学号/姓名/院系）
+
+        Returns:
+            Optional[dict]: 学生数据，接口异常或无权限时返回 None
+        """
+        try:
+            params = {}
+            if keyword:
+                params["keyword"] = keyword
+            response = await self.client.get(
+                f"{self.base_url}/api/campus/internal/students",
+                headers={"Authorization": f"Bearer {token}"},
+                params=params,
+            )
+            response.raise_for_status()
+            data = response.json()
+            logger.info(f"学生查询成功, keyword={keyword}, 返回数据条数: {len(data.get('data', []))}")
+            return data
+        except httpx.TimeoutException:
+            logger.warning("学生查询超时")
+            return None
+        except httpx.HTTPStatusError as e:
+            logger.error(f"学生查询 HTTP 错误: {e.response.status_code}")
+            return None
+        except Exception as e:
+            logger.error(f"学生查询异常: {e}", exc_info=True)
             return None
 
     async def close(self) -> None:

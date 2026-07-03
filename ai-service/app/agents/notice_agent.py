@@ -6,21 +6,30 @@ import logging
 from openai import AsyncOpenAI
 
 from app.config import settings
+from app.prompts import get_system_prompt
 from app.utils.exceptions import LLMError
 
 logger = logging.getLogger(__name__)
 
 NOTICE_PROMPT_TEMPLATE = """你是一个校园通知检索助手。根据以下通知数据，回答用户的问题。
 
-通知数据：
+通知数据（JSON）：
 {notice_data}
+
+字段说明：
+- title: 通知标题
+- content: 通知正文内容
+- category: 分类（academic=教务, dormitory=宿舍, scholarship=奖助, general=综合）
+- publisher: 发布人
+- published_at: 发布时间
+- updated_at: 更新时间
 
 用户问题：{user_question}
 
 对话历史（最近消息）：
 {history_context}
 
-请根据通知数据给出清晰、准确的回答。如果通知数据为空，请告知用户暂无相关通知。
+请严格根据通知数据回答，不要编造数据中不存在的信息。如果通知数据为空，请告知用户暂无相关通知。
 回答时请整理通知信息，包括通知标题、发布时间、主要内容摘要等。如果有多条相关通知，请逐条列出。
 注意：回答中不要使用任何emoji表情符号，用纯文字即可。"""
 
@@ -62,10 +71,14 @@ class NoticeAgent:
             history_context=history_context or "（无历史消息）",
         )
 
+        role = kwargs.get("role", "student")
         try:
             response = await self.client.chat.completions.create(
                 model=self.model,
-                messages=[{"role": "user", "content": prompt}],
+                messages=[
+                    {"role": "system", "content": get_system_prompt(role)},
+                    {"role": "user", "content": prompt},
+                ],
                 temperature=0.3,
                 max_tokens=800,
             )

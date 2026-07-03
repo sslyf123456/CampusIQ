@@ -43,8 +43,8 @@ CREATE TABLE campus.students (
     updated_at      TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_students_student_id ON campus.students(student_id);
-CREATE INDEX idx_students_enrollment_year ON campus.students(enrollment_year);
+-- student_id 已有 UNIQUE 约束自动建索引，无需重复
+-- enrollment_year 无查询场景，不建索引
 
 COMMENT ON TABLE  campus.students IS '学生表';
 COMMENT ON COLUMN campus.students.student_id IS '学号，登录账号，唯一';
@@ -65,7 +65,7 @@ CREATE TABLE campus.admins (
     updated_at    TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_admins_username ON campus.admins(username);
+-- username 已有 UNIQUE 约束自动建索引，无需重复
 
 COMMENT ON TABLE  campus.admins IS '管理员表';
 
@@ -91,7 +91,7 @@ CREATE TABLE campus.schedules (
 );
 
 CREATE INDEX idx_schedules_semester ON campus.schedules(semester);
-CREATE INDEX idx_schedules_weekday ON campus.schedules(weekday);
+-- weekday 选择性低且无单独筛选场景，不建索引
 
 COMMENT ON TABLE  campus.schedules IS '课表：管理员维护，学生查询';
 COMMENT ON COLUMN campus.schedules.weekday IS '1=周一，7=周日';
@@ -127,8 +127,8 @@ CREATE TABLE campus.repair_orders (
     completed_at    TIMESTAMPTZ                           -- 完成时间
 );
 
-CREATE INDEX idx_repair_student ON campus.repair_orders(student_id);
-CREATE INDEX idx_repair_status ON campus.repair_orders(status);
+-- 复合索引：覆盖学生筛选 + 提交时间倒序排序
+CREATE INDEX idx_repair_student_time ON campus.repair_orders(student_id, submitted_at DESC);
 
 COMMENT ON TABLE  campus.repair_orders IS '宿舍报修工单';
 COMMENT ON COLUMN campus.repair_orders.status IS 'pending=待处理，processing=处理中，completed=已完成';
@@ -150,8 +150,8 @@ CREATE TABLE campus.scholarship_records (
     updated_at      TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_scholarship_student ON campus.scholarship_records(student_id);
-CREATE INDEX idx_scholarship_status ON campus.scholarship_records(status);
+-- 复合索引：覆盖学生筛选 + 创建时间倒序排序
+CREATE INDEX idx_scholarship_student_time ON campus.scholarship_records(student_id, created_at DESC);
 
 COMMENT ON TABLE  campus.scholarship_records IS '奖助记录';
 COMMENT ON COLUMN campus.scholarship_records.type IS '奖学金 / 助学金';
@@ -172,8 +172,8 @@ CREATE TABLE campus.notices (
     created_by      INT          REFERENCES campus.admins(id) ON DELETE SET NULL
 );
 
-CREATE INDEX idx_notices_category ON campus.notices(category);
-CREATE INDEX idx_notices_published ON campus.notices(published_at DESC);
+-- 复合索引：覆盖分类筛选 + 发布时间倒序排序
+CREATE INDEX idx_notices_category_time ON campus.notices(category, published_at DESC);
 
 COMMENT ON TABLE  campus.notices IS '校园通知公告：管理员发布，学生检索查看';
 COMMENT ON COLUMN campus.notices.category IS 'academic=教务，dormitory=后勤，scholarship=评奖，general=通用';
@@ -189,7 +189,7 @@ CREATE TABLE campus.token_blacklist (
     created_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_token_blacklist_jti ON campus.token_blacklist(jti);
+-- jti 已有 UNIQUE 约束自动建索引，无需重复
 CREATE INDEX idx_token_blacklist_expires ON campus.token_blacklist(expires_at);
 
 COMMENT ON TABLE  campus.token_blacklist IS '已退出的 JWT 黑名单，过期后自动清理';
@@ -218,9 +218,10 @@ CREATE TABLE ai_campus.faq_embeddings (
 );
 
 -- pgvector 余弦距离索引（IVFFlat，加速 Top-K 检索）
+-- FAQ 数据量小（约几十到上百 chunk），lists 调小以适配
 CREATE INDEX idx_faq_embedding ON ai_campus.faq_embeddings
     USING ivfflat (embedding vector_cosine_ops)
-    WITH (lists = 100);
+    WITH (lists = 10);
 
 COMMENT ON TABLE  ai_campus.faq_embeddings IS 'FAQ 文档向量嵌入表，用于 RAG 检索';
 COMMENT ON COLUMN ai_campus.faq_embeddings.embedding IS '向量维度取决于 Embedding 模型，OpenAI text-embedding-3-small 为 1536';
@@ -238,8 +239,8 @@ CREATE TABLE ai_campus.conversations (
     updated_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_conversations_student ON ai_campus.conversations(student_id);
-CREATE INDEX idx_conversations_status ON ai_campus.conversations(status);
+-- 复合索引：覆盖学生筛选 + 状态筛选 + 更新时间倒序排序
+CREATE INDEX idx_conversations_student_status_time ON ai_campus.conversations(student_id, status, updated_at DESC);
 
 COMMENT ON TABLE  ai_campus.conversations IS 'AI 问答会话';
 COMMENT ON COLUMN ai_campus.conversations.status IS 'active=活跃，closed=已关闭';

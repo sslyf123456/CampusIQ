@@ -114,6 +114,28 @@ class ConversationService:
             ],
         )
 
+    def update_title(self, db: Session, conversation_id: int, title: str) -> Optional[Conversation]:
+        """更新会话标题。
+
+        Args:
+            db: 数据库会话
+            conversation_id: 会话ID
+            title: 新标题
+
+        Returns:
+            Optional[Conversation]: 更新后的会话对象，不存在返回 None
+        """
+        conversation = db.query(Conversation).filter(
+            Conversation.id == conversation_id,
+        ).first()
+        if not conversation:
+            return None
+        conversation.title = title
+        db.commit()
+        db.refresh(conversation)
+        logger.info(f"更新会话标题: id={conversation_id}, title={title}")
+        return conversation
+
     def close_conversation(self, db: Session, conversation_id: int, student_id: int) -> Optional[Conversation]:
         """删除会话（逻辑删除，设置 status=closed）。
 

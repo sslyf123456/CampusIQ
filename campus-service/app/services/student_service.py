@@ -2,9 +2,11 @@ from sqlalchemy.orm import Session
 from sqlalchemy import or_
 
 from ..models.student import Student
+from ..models.schedule import Schedule, student_schedule
 from ..utils.security import hash_password
 from ..utils.exceptions import NotFound, BadRequest
 from ..schemas.student import StudentCreate, StudentUpdate
+from ..schemas.schedule import ScheduleOut
 
 
 def list_students(db: Session, keyword: str = "", page: int = 1, page_size: int = 20):
@@ -65,3 +67,21 @@ def delete_student(db: Session, student_id: str):
     s = get_student(db, student_id)
     db.delete(s)
     db.commit()
+
+
+def get_student_schedules(db: Session, student_id: str):
+    s = get_student(db, student_id)
+    courses = (
+        db.query(Schedule)
+        .join(student_schedule, student_schedule.c.schedule_id == Schedule.id)
+        .filter(student_schedule.c.student_id == s.id)
+        .order_by(
+            Schedule.semester.desc(),
+            Schedule.weekday.asc(),
+            Schedule.start_period.asc(),
+            Schedule.end_period.asc(),
+            Schedule.id.asc(),
+        )
+        .all()
+    )
+    return courses
