@@ -115,7 +115,7 @@ class ConversationService:
         )
 
     def close_conversation(self, db: Session, conversation_id: int, student_id: int) -> Optional[Conversation]:
-        """关闭会话（设置 status=closed）。
+        """删除会话（逻辑删除，设置 status=closed）。
 
         Args:
             db: 数据库会话
@@ -123,7 +123,7 @@ class ConversationService:
             student_id: 学生数据库主键ID（用于验证归属）
 
         Returns:
-            Optional[Conversation]: 关闭的会话对象，不存在或不属于当前用户返回 None
+            Optional[Conversation]: 删除的会话对象，不存在或不属于当前用户返回 None
         """
         conversation = db.query(Conversation).filter(
             Conversation.id == conversation_id,
@@ -136,7 +136,7 @@ class ConversationService:
         conversation.status = "closed"
         db.commit()
         db.refresh(conversation)
-        logger.info(f"关闭会话: id={conversation_id}")
+        logger.info(f"删除会话(逻辑删除): id={conversation_id}")
         return conversation
 
     def add_message(

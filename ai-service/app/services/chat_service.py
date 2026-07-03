@@ -43,7 +43,8 @@ Agent 处理结果：
 要求：
 1. 用自然、友好的语言回答，不要生硬地罗列数据
 2. 如果数据为空或 Agent 返回兜底提示，请如实告知用户
-3. 回答要简洁清晰，不要过长"""
+3. 回答要简洁清晰，不要过长
+4. 不要使用任何emoji表情符号，用纯文字即可"""
 
 
 class ChatService:
@@ -100,7 +101,9 @@ class ChatService:
                     conversation_id = None  # 标记为需要创建新会话
 
             if not conversation_id:
-                conv = self.conversation_service.create_conversation(db, student_db_id)
+                # 用用户第一个问题作为会话标题（截取前20字）
+                title = user_message[:20] + ("..." if len(user_message) > 20 else "")
+                conv = self.conversation_service.create_conversation(db, student_db_id, title=title)
                 conversation_id = conv.id
 
             # 2. 保存用户消息
@@ -178,7 +181,12 @@ class ChatService:
                 )
 
             elif intent_result.intent == "notice":
-                keyword = intent_result.keyword or user_message
+                # keyword 仅在用户明确搜索具体话题时使用
+                # 泛泛的问题（"最近有什么通知"）不传 keyword，返回所有通知
+                keyword = intent_result.keyword
+                # 如果 keyword 等于用户原始问题或过于泛化，不传 keyword
+                if keyword and (keyword == user_message or keyword in ["通知", "校园通知", "公告", "通知公告", "最新通知", "近期通知", "最近通知"]):
+                    keyword = ""
                 notice_data = await self.campus_client.get_notices(token, keyword)
                 agent_result = await self.sub_agents["notice"].run(
                     user_message, notice_data=notice_data

@@ -128,12 +128,12 @@ async def get_conversation_detail(
 
 
 @router.delete("/conversations/{conversation_id}")
-async def close_conversation(
+async def delete_conversation(
     conversation_id: int,
     db: Session = Depends(get_db),
     authorization: Optional[str] = Header(None),
 ):
-    """关闭会话（设置 status=closed）。
+    """删除会话（逻辑删除，设置 status=closed）。
 
     Args:
         conversation_id: 会话ID
@@ -148,4 +148,4 @@ async def close_conversation(
     conversation = conversation_service.close_conversation(db, conversation_id, student_id)
     if not conversation:
         raise HTTPException(status_code=404, detail="会话不存在或不属于当前用户")
-    return {"message": "会话已关闭", "conversation_id": conversation_id}
+    return {"message": "会话已删除", "conversation_id": conversation_id}

@@ -130,7 +130,7 @@ class CampusClient:
             )
             response.raise_for_status()
             data = response.json()
-            logger.info(f"通知查询成功, keyword={keyword}")
+            logger.info(f"通知查询成功, keyword={keyword}, 返回数据条数: {len(data.get('data', []))}")
             return data
         except httpx.TimeoutException:
             logger.warning("通知查询超时")

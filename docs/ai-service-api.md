@@ -240,9 +240,11 @@ data: {}
 
 ---
 
-### DELETE /api/ai/conversations/{conversation_id} — 关闭会话
+### DELETE /api/ai/conversations/{conversation_id} — 删除会话
 
-**权限**: 需登录（只能关闭自己的会话）
+**权限**: 需登录（只能删除自己的会话）
+
+**说明**: 逻辑删除，将会话 status 设为 closed，删除后不再出现在会话列表中，但数据仍保留在数据库。不可恢复。
 
 **请求头**: `Authorization: Bearer <token>`
 
@@ -254,7 +256,7 @@ data: {}
 **响应**:
 ```json
 {
-  "message": "会话已关闭",
+  "message": "会话已删除",
   "conversation_id": 1
 }
 ```
