@@ -12,8 +12,12 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/api': {
+      '/api/campus': {
         target: 'http://localhost:8001',
+        changeOrigin: true,
+      },
+      '/api/ai': {
+        target: 'http://localhost:8002',
         changeOrigin: true,
       },
     },

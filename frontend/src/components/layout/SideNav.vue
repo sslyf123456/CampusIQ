@@ -26,6 +26,10 @@
         <el-icon><Bell /></el-icon>
         <span>校园通知</span>
       </el-menu-item>
+      <el-menu-item index="/chat">
+        <el-icon><ChatDotRound /></el-icon>
+        <span>AI 问答</span>
+      </el-menu-item>
     </el-menu>
     <div class="logout" @click="handleLogout">
       <el-icon><SwitchButton /></el-icon>
@@ -40,7 +44,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { ElMessage } from 'element-plus'
 import {
-  User, Calendar, Tools, Money, Bell, SwitchButton
+  User, Calendar, Tools, Money, Bell, ChatDotRound, SwitchButton
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
@@ -65,7 +69,7 @@ async function handleLogout() {
   width: 200px;
   height: 100vh;
   background: #fff;
-  border-right: 1px solid #e4e7ed;
+  border-right: 1.5px solid #dcdfe6;
   display: flex;
   flex-direction: column;
 }
@@ -77,7 +81,7 @@ async function handleLogout() {
   font-size: 16px;
   font-weight: 500;
   color: #303133;
-  border-bottom: 1px solid #e4e7ed;
+  border-bottom: 1.5px solid #dcdfe6;
 }
 .nav-menu {
   flex: 1;
@@ -91,9 +95,9 @@ async function handleLogout() {
   cursor: pointer;
   color: #909399;
   font-size: 14px;
-  border-top: 1px solid #e4e7ed;
+  border-top: 1.5px solid #dcdfe6;
 }
 .logout:hover {
-  color: #f56c6c;
+  color: #409eff;
 }
 </style>
