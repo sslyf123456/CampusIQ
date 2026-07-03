@@ -19,6 +19,15 @@ export default defineConfig({
       '/api/ai': {
         target: 'http://localhost:8002',
         changeOrigin: true,
+        // SSE 流式响应需要禁用 proxy 缓冲
+        configure: (proxy, options) => {
+          proxy.on('proxyReq', (proxyReq, req, res) => {
+            res.setHeader('Cache-Control', 'no-cache')
+            res.setHeader('Connection', 'keep-alive')
+            res.setHeader('X-Accel-Buffering', 'no')
+          })
+        },
+        ws: false,
       },
     },
   },

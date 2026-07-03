@@ -56,7 +56,14 @@ def create_scholarship(db: Session, data: ScholarshipCreate):
 
 def update_scholarship(db: Session, record_id: int, data: ScholarshipUpdate):
     record = get_scholarship(db, record_id)
-    for k, v in data.model_dump(exclude_unset=True).items():
+    update_data = data.model_dump(exclude_unset=True)
+    if 'student_id' in update_data:
+        student_no = update_data.pop('student_id')
+        student = db.query(Student).filter(Student.student_id == student_no).first()
+        if not student:
+            raise BadRequest(f"学号 {student_no} 不存在")
+        record.student_id = student.id
+    for k, v in update_data.items():
         setattr(record, k, v)
     db.commit()
     db.refresh(record)

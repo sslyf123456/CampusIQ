@@ -681,7 +681,7 @@
 
 ### GET /api/campus/internal/schedule — 查询课表
 
-**权限**: JWT(student)，非 student 返回空数组
+**权限**: JWT(任意)
 
 **参数**:
 | 参数 | 类型 | 默认值 | 说明 |
@@ -712,7 +712,7 @@
 
 ### GET /api/campus/internal/repair — 查询报修工单
 
-**权限**: JWT(student)
+**权限**: JWT(任意)
 
 **响应**:
 ```json
@@ -739,7 +739,7 @@
 
 ### GET /api/campus/internal/scholarship — 查询奖助记录
 
-**权限**: JWT(student)
+**权限**: JWT(任意)
 
 **响应**:
 ```json

@@ -7,9 +7,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.database import SessionLocal
+from app.database import SessionLocal, engine, Base
 from app.routers import chat, conversations
 from app.rag.vector_store import VectorStore
+from app import models
 
 logger = logging.getLogger(__name__)
 
@@ -22,7 +23,14 @@ logging.basicConfig(
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    """应用生命周期管理：启动时初始化 FAQ 向量，关闭时清理资源。"""
+    """应用生命周期管理：启动时初始化数据库表和 FAQ 向量，关闭时清理资源。"""
+    from sqlalchemy import text
+    # 自动创建 ai_campus schema 和表
+    with engine.begin() as conn:
+        conn.execute(text("CREATE SCHEMA IF NOT EXISTS ai_campus"))
+    Base.metadata.create_all(bind=engine)
+    logger.info("AI Service 数据库表已自动创建/同步")
+
     logger.info("AI Service 启动，检查 FAQ 向量数据...")
 
     db = SessionLocal()
@@ -34,8 +42,10 @@ async def lifespan(app: FastAPI):
                 from app.rag.loader import process_and_store
                 try:
                     count = await process_and_store(db, settings.FAQ_DATA_DIR)
-                    logger.info(f"FAQ 自动入库完成, 共 {count} 条向量记录")
+                    db.commit()
+                    logger.info(f"FAQ 自动入库完成，共 {count} 条向量记录")
                 except Exception as e:
+                    db.rollback()
                     logger.warning(f"FAQ 自动入库失败（可手动执行）: {e}")
             else:
                 logger.warning("Embedding API Key 未配置或 FAQ 目录不存在，跳过自动入库")

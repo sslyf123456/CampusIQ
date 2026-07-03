@@ -237,6 +237,7 @@ async function handleSend() {
     steps: [],
   }
   messages.value.push(aiMsg)
+  const aiMsgIndex = messages.value.length - 1  // 记录索引，通过响应式 Proxy 修改
   scrollToBottom()
 
   thinking.value = true
@@ -245,31 +246,31 @@ async function handleSend() {
     await chatStreamApi(currentConversationId.value, text, (event, data) => {
       switch (event as SSEEventType) {
         case 'thinking':
-          aiMsg.steps!.push({ type: 'thinking', content: data.content || '思考中...' })
+          messages.value[aiMsgIndex].steps!.push({ type: 'thinking', content: data.content || '思考中...' })
           break
         case 'agent_call':
-          aiMsg.steps!.push({
+          messages.value[aiMsgIndex].steps!.push({
             type: 'agent_call',
             content: data.description || '',
             agent: data.agent,
           })
           break
         case 'result':
-          aiMsg.content += data.content || ''
+          messages.value[aiMsgIndex].content += data.content || ''
           scrollToBottom()
           break
         case 'clarify':
-          aiMsg.content = data.question || '请明确您的问题'
+          messages.value[aiMsgIndex].content = data.question || '请明确您的问题'
           break
         case 'error':
-          aiMsg.content = data.message || '抱歉，处理时出现错误'
+          messages.value[aiMsgIndex].content = data.message || '抱歉，处理时出现错误'
           break
         case 'done':
           break
       }
     })
   } catch {
-    aiMsg.content = '连接失败，请稍后重试'
+    messages.value[aiMsgIndex].content = '连接失败，请稍后重试'
   } finally {
     thinking.value = false
     scrollToBottom()

@@ -64,6 +64,9 @@
         <el-form-item label="标题" prop="title">
           <el-input v-model="form.title" />
         </el-form-item>
+        <el-form-item label="发布人" prop="publisher">
+          <el-input v-model="form.publisher" />
+        </el-form-item>
         <el-form-item label="分类" prop="category">
           <el-select v-model="form.category">
             <el-option label="通知" value="general" />
@@ -158,7 +161,8 @@ function showDlg(row: Notice | null) {
   } else {
     dlgTitle.value = '发布通知'
     editingId.value = null
-    form.value = { category: 'general', title: '', content: '' }
+    // 新建时默认发布人为当前管理员名称
+    form.value = { category: 'general', title: '', content: '', publisher: auth.user?.name || '' }
   }
   dlgVisible.value = true
 }

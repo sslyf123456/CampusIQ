@@ -14,6 +14,8 @@ class RepairOrderUpdate(BaseModel):
     status: str = Field(..., pattern=r"^(pending|processing|completed)$")
     handler: Optional[str] = Field(None, max_length=64)
     handle_note: Optional[str] = None
+    processed_at: Optional[str] = None
+    completed_at: Optional[str] = None
 
 
 class RepairOrderOut(BaseModel):

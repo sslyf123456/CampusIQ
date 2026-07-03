@@ -4,6 +4,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy import text
 
 from .routers import auth, students, schedules, repair_orders, scholarships, notices, internal
 from .utils.exceptions import (
@@ -13,6 +14,8 @@ from .utils.exceptions import (
     sqlalchemy_exception_handler,
     validation_exception_handler,
 )
+from .database import Base, _get_engine
+from . import models
 
 # 日志格式配置
 logging.basicConfig(
@@ -22,6 +25,14 @@ logging.basicConfig(
 )
 
 app = FastAPI(title="Campus QA - Campus Service", version="1.0.0")
+
+@app.on_event("startup")
+def startup_event():
+    engine = _get_engine()
+    with engine.begin() as conn:
+        conn.execute(text("CREATE SCHEMA IF NOT EXISTS campus"))
+    Base.metadata.create_all(bind=engine)
+    logging.info("数据库表已自动创建/同步")
 
 app.add_middleware(
     CORSMiddleware,

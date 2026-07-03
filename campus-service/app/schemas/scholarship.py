@@ -16,6 +16,7 @@ class ScholarshipCreate(BaseModel):
 
 
 class ScholarshipUpdate(BaseModel):
+    student_id: Optional[str] = Field(None, min_length=1, max_length=32, description="学号")
     type: Optional[str] = Field(None, max_length=64)
     name: Optional[str] = Field(None, min_length=1, max_length=128)
     amount: Optional[Decimal] = Field(None, ge=0, max_digits=10, decimal_places=2)

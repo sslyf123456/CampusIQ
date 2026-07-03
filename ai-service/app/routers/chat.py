@@ -13,8 +13,6 @@ from app.config import settings
 from app.database import get_db
 from app.schemas.chat import ChatRequest, SSEEvent
 from app.services.chat_service import ChatService
-from app.utils.sse import format_sse_event
-
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/ai", tags=["chat"])
@@ -94,10 +92,11 @@ async def chat_stream(
                 conversation_id=request.conversation_id,
                 user_message=request.message,
             ):
-                yield format_sse_event(sse_event.event, sse_event.data)
+                # 直接 yield dict，sse_starlette 会自动序列化为标准 SSE 格式
+                yield {"event": sse_event.event, "data": sse_event.data}
         except Exception as e:
             logger.error(f"SSE 流式对话异常: {e}", exc_info=True)
             error_data = json.dumps({"error": str(e)})
-            yield format_sse_event("error", error_data)
+            yield {"event": "error", "data": error_data}
 
     return EventSourceResponse(event_generator())

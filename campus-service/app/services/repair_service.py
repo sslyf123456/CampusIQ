@@ -7,6 +7,18 @@ from ..utils.exceptions import NotFound, Forbidden
 from ..schemas.repair_order import RepairOrderCreate, RepairOrderUpdate
 
 
+def _parse_dt(s: str | None) -> datetime | None:
+    if not s:
+        return None
+    try:
+        return datetime.fromisoformat(s.replace(' ', 'T'))
+    except ValueError:
+        try:
+            return datetime.strptime(s, '%Y-%m-%d %H:%M:%S')
+        except ValueError:
+            return None
+
+
 def list_repair_orders(db: Session, page: int = 1, page_size: int = 20, student_db_id: int = None, status: str = ""):
     q = db.query(RepairOrder)
     if student_db_id:
@@ -46,10 +58,13 @@ def update_repair_order(db: Session, order_id: int, data: RepairOrderUpdate):
     order.handler = data.handler
     order.handle_note = data.handle_note
     now = datetime.utcnow()
-    if data.status == "processing" and not order.processed_at:
-        order.processed_at = now
+    if data.status == "processing":
+        order.processed_at = _parse_dt(data.processed_at) or order.processed_at or now
+        if data.completed_at:
+            order.completed_at = _parse_dt(data.completed_at)
     elif data.status == "completed":
-        order.completed_at = now
+        order.completed_at = _parse_dt(data.completed_at) or order.completed_at or now
+        order.processed_at = _parse_dt(data.processed_at) or order.processed_at or now
     db.commit()
     db.refresh(order)
     return order

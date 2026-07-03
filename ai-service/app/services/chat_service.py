@@ -123,8 +123,8 @@ class ChatService:
                 "clarify": False,
             }))
 
-            # 5. Master Agent 意图识别
-            intent_result = await self.master_agent.run(user_message)
+            # 5. Master Agent 意图识别（传入历史上下文）
+            intent_result = await self.master_agent.run(user_message, history_context=history_context)
 
             # 6. 根据意图结果路由
             if intent_result.intent == "unclear":
@@ -165,19 +165,19 @@ class ChatService:
             if intent_result.intent == "schedule":
                 schedule_data = await self.campus_client.get_schedule(token)
                 agent_result = await self.sub_agents["schedule"].run(
-                    user_message, schedule_data=schedule_data
+                    user_message, history_context=history_context, schedule_data=schedule_data
                 )
 
             elif intent_result.intent == "repair":
                 repair_data = await self.campus_client.get_repair(token)
                 agent_result = await self.sub_agents["repair"].run(
-                    user_message, repair_data=repair_data
+                    user_message, history_context=history_context, repair_data=repair_data
                 )
 
             elif intent_result.intent == "scholarship":
                 scholarship_data = await self.campus_client.get_scholarship(token)
                 agent_result = await self.sub_agents["scholarship"].run(
-                    user_message, scholarship_data=scholarship_data
+                    user_message, history_context=history_context, scholarship_data=scholarship_data
                 )
 
             elif intent_result.intent == "notice":
@@ -189,18 +189,18 @@ class ChatService:
                     keyword = ""
                 notice_data = await self.campus_client.get_notices(token, keyword)
                 agent_result = await self.sub_agents["notice"].run(
-                    user_message, notice_data=notice_data
+                    user_message, history_context=history_context, notice_data=notice_data
                 )
 
             elif intent_result.intent == "faq":
                 agent_result = await self.sub_agents["faq"].run(
-                    user_message, db=db
+                    user_message, history_context=history_context, db=db
                 )
 
             else:
                 # 未知意图 → FAQ 兜底
                 agent_result = await self.sub_agents["faq"].run(
-                    user_message, db=db
+                    user_message, history_context=history_context, db=db
                 )
 
             # 8. 使用 LLM 流式生成最终自然语言回答（SSE result 事件，逐 token 推送）

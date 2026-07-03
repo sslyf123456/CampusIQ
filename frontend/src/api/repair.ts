@@ -14,7 +14,16 @@ export async function getRepairOrdersApi(params?: { status?: string; page?: numb
 }
 
 // 管理员：更新工单状态，返回 { data: {...} }
-export async function updateRepairOrderApi(id: number, data: { status: string; handler?: string; handle_note?: string }) {
+export async function updateRepairOrderApi(
+  id: number,
+  data: {
+    status: string
+    handler?: string
+    handle_note?: string
+    processed_at?: string
+    completed_at?: string
+  }
+) {
   const res = await request.put<{ data: RepairOrder }>(`/campus/repair-orders/${id}`, data)
   return res.data.data
 }

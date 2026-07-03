@@ -24,15 +24,17 @@ export function closeConversationApi(id: number) {
 
 /**
  * SSE 流式对话
- * 用 fetch + ReadableStream 解析 SSE（axios 不支持流式）
+ * 直连后端（绕过 Vite proxy 缓冲），用 fetch + ReadableStream 解析 SSE
  */
+const AI_SERVICE_URL = 'http://localhost:8002'
+
 export async function chatStreamApi(
   conversationId: number | null,
   message: string,
   onEvent: (event: SSEEventType, data: SSEEventData) => void,
 ): Promise<void> {
   const token = getToken()
-  const res = await fetch('/api/ai/chat', {
+  const res = await fetch(`${AI_SERVICE_URL}/api/ai/chat`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -58,11 +60,13 @@ export async function chatStreamApi(
 
     buffer += decoder.decode(value, { stream: true })
 
-    // 按 SSE 事件分隔（双换行）
-    const parts = buffer.split('\n\n')
+    // sse_starlette 用 \r\n\r\n 分隔事件，统一处理后分割
+    const normalized = buffer.replace(/\r\n/g, '\n')
+    const parts = normalized.split('\n\n')
     buffer = parts.pop() || ''
 
     for (const part of parts) {
+      if (!part.trim()) continue
       const lines = part.split('\n')
       let eventType: string = 'message'
       let dataStr: string = ''
@@ -71,11 +75,13 @@ export async function chatStreamApi(
         if (line.startsWith('event:')) {
           eventType = line.slice(6).trim()
         } else if (line.startsWith('data:')) {
-          dataStr += line.slice(5).trim()
+          // data 行可能有多个（data 字段包含换行），全部拼接
+          if (dataStr) dataStr += '\n'
+          dataStr += line.slice(5)
         }
       }
 
-      if (eventType && dataStr) {
+      if (dataStr) {
         let data: SSEEventData = {}
         try {
           data = JSON.parse(dataStr)
@@ -86,4 +92,6 @@ export async function chatStreamApi(
       }
     }
   }
+
+  console.log('[SSE] 流结束')
 }

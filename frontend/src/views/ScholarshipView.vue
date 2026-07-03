@@ -51,6 +51,9 @@
     <!-- 增删改弹窗 -->
     <el-dialog :title="dlgTitle" v-model="dlgVisible" width="500px" @close="resetForm">
       <el-form :model="form" :rules="rules" ref="formRef" label-width="100px">
+        <el-form-item label="学号" prop="student_id">
+          <el-input v-model="form.student_id" placeholder="请输入学生学号" />
+        </el-form-item>
         <el-form-item label="类型" prop="type">
           <el-select v-model="form.type" placeholder="请选择">
             <el-option label="奖学金" value="奖学金" />
@@ -113,6 +116,10 @@ const formRef = ref()
 const form = ref<Partial<ScholarshipRecord>>({})
 
 const rules = {
+  student_id: [
+    { required: true, message: '请输入学生学号', trigger: 'blur' },
+    { max: 32, message: '最多32个字符', trigger: 'blur' },
+  ],
   type: [{ required: true, message: '请选择类型', trigger: 'change' }],
   name: [
     { required: true, message: '请输入奖项名称', trigger: 'blur' },
@@ -154,7 +161,15 @@ function showDlg(row: ScholarshipRecord | null) {
   if (row) {
     dlgTitle.value = '编辑记录'
     editingId.value = row.id
-    form.value = { ...row }
+    form.value = {
+      student_id: row.student_no,
+      type: row.type,
+      name: row.name,
+      amount: row.amount,
+      status: row.status,
+      semester: row.semester,
+      note: row.note,
+    }
   } else {
     dlgTitle.value = '添加记录'
     editingId.value = null

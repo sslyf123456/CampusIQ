@@ -16,7 +16,7 @@
       </el-menu-item>
       <el-menu-item index="/schedule">
         <el-icon><Calendar /></el-icon>
-        <span>课表</span>
+        <span>{{ isAdmin ? '课程管理' : '课表' }}</span>
       </el-menu-item>
       <el-menu-item index="/repair">
         <el-icon><Tools /></el-icon>

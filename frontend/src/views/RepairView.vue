@@ -74,6 +74,15 @@
         <el-form-item label="处理人" prop="handler">
           <el-input v-model="handleForm.handler" />
         </el-form-item>
+        <el-form-item label="处理时间" prop="processed_at">
+          <el-date-picker
+            v-model="handleForm.processed_at"
+            type="datetime"
+            placeholder="选择处理时间"
+            value-format="YYYY-MM-DD HH:mm:ss"
+            style="width: 100%"
+          />
+        </el-form-item>
         <el-form-item label="处理备注" prop="handle_note">
           <el-input v-model="handleForm.handle_note" type="textarea" :rows="2" />
         </el-form-item>
@@ -137,8 +146,14 @@ async function handleCreate() {
 
 // 管理员处理
 const handleVisible = ref(false)
-const handleForm = ref<{ id: number; status: string; handler: string; handle_note: string }>({
-  id: 0, status: 'processing', handler: '', handle_note: ''
+const handleForm = ref<{
+  id: number
+  status: string
+  handler: string
+  handle_note: string
+  processed_at: string
+}>({
+  id: 0, status: 'processing', handler: '', handle_note: '', processed_at: ''
 })
 const handleRef = ref()
 const handleRules = {
@@ -151,6 +166,7 @@ function showHandleDlg(row: RepairOrder) {
     status: row.status === 'pending' ? 'processing' : 'completed',
     handler: row.handler || '',
     handle_note: row.handle_note || '',
+    processed_at: row.processed_at || '',
   }
   handleVisible.value = true
 }
@@ -159,11 +175,18 @@ async function handleSave() {
   if (!valid) return
   saving.value = true
   try {
-    await updateRepairOrderApi(handleForm.value.id, {
+    const payload: any = {
       status: handleForm.value.status,
       handler: handleForm.value.handler,
       handle_note: handleForm.value.handle_note,
-    })
+    }
+    if (handleForm.value.processed_at) {
+      payload.processed_at = handleForm.value.processed_at
+      if (handleForm.value.status === 'completed') {
+        payload.completed_at = handleForm.value.processed_at
+      }
+    }
+    await updateRepairOrderApi(handleForm.value.id, payload)
     ElMessage.success('处理成功')
     handleVisible.value = false
     loadData()
