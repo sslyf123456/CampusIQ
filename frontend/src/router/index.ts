@@ -25,6 +25,12 @@ const router = createRouter({
           component: () => import('@/views/ProfileView.vue'),
         },
         {
+          path: 'students',
+          name: 'Students',
+          component: () => import('@/views/StudentManageView.vue'),
+          meta: { role: 'admin' },
+        },
+        {
           path: 'schedule',
           name: 'Schedule',
           component: () => import('@/views/ScheduleView.vue'),
@@ -70,12 +76,23 @@ router.beforeEach(async (to, _from, next) => {
   } else if (auth.isLoggedIn && !auth.user) {
     try {
       await auth.fetchProfile()
+      // 登录后补拉用户信息，再做角色守卫
+      const requiredRole = to.meta.role as string | undefined
+      if (requiredRole && auth.user?.role !== requiredRole) {
+        next('/')
+        return
+      }
       next()
     } catch {
       await auth.logout()
       next('/login')
     }
   } else {
+    const requiredRole = to.meta.role as string | undefined
+    if (requiredRole && auth.user?.role !== requiredRole) {
+      next('/')
+      return
+    }
     next()
   }
 })

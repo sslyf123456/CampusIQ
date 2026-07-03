@@ -10,7 +10,7 @@ from ..utils.response import PaginatedResponse, MessageResponse
 router = APIRouter(prefix="/api/campus/scholarships", tags=["奖助管理"])
 
 
-@router.get("", response_model=PaginatedResponse[ScholarshipOut])
+@router.get("")
 def list_scholarships(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),

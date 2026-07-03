@@ -3,17 +3,26 @@ from sqlalchemy.orm import Session
 from ..models.scholarship import ScholarshipRecord
 from ..models.student import Student
 from ..utils.exceptions import NotFound, Forbidden, BadRequest
-from ..schemas.scholarship import ScholarshipCreate, ScholarshipUpdate
+from ..schemas.scholarship import ScholarshipCreate, ScholarshipUpdate, ScholarshipOut
 
 
 def list_scholarships(db: Session, page: int = 1, page_size: int = 20, student_db_id: int = None, status: str = ""):
-    q = db.query(ScholarshipRecord)
+    q = db.query(ScholarshipRecord, Student.student_id, Student.name).join(
+        Student, ScholarshipRecord.student_id == Student.id
+    )
     if student_db_id:
         q = q.filter(ScholarshipRecord.student_id == student_db_id)
     if status:
         q = q.filter(ScholarshipRecord.status == status)
     total = q.count()
-    items = q.order_by(ScholarshipRecord.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
+    rows = q.order_by(ScholarshipRecord.created_at.desc()).offset((page - 1) * page_size).limit(page_size).all()
+    # 组装：record 对象 + 学号 + 姓名
+    items = []
+    for record, sno, sname in rows:
+        item = ScholarshipOut.model_validate(record).model_dump()
+        item["student_no"] = sno
+        item["student_name"] = sname
+        items.append(item)
     return {"data": items, "total": total, "page": page, "page_size": page_size}
 
 

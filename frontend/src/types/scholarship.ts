@@ -1,6 +1,8 @@
 export interface ScholarshipRecord {
   id: number
   student_id: number
+  student_no?: string
+  student_name?: string
   type: string
   name: string
   amount?: string

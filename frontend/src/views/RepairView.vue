@@ -29,6 +29,18 @@
           </template>
         </el-table-column>
       </el-table>
+
+      <div class="pager">
+        <el-pagination
+          v-model:current-page="page"
+          v-model:page-size="pageSize"
+          :total="total"
+          :page-sizes="[10, 20, 50]"
+          layout="total, sizes, prev, pager, next"
+          @size-change="loadData"
+          @current-change="loadData"
+        />
+      </div>
     </el-card>
 
     <!-- 发起报修弹窗 -->
@@ -85,6 +97,9 @@ import type { RepairOrder } from '@/types/repair'
 const auth = useAuthStore()
 const isAdmin = computed(() => auth.user?.role === 'admin')
 const list = ref<RepairOrder[]>([])
+const page = ref(1)
+const pageSize = ref(20)
+const total = ref(0)
 
 // 发起报修
 const createVisible = ref(false)
@@ -161,8 +176,9 @@ async function handleSave() {
 
 async function loadData() {
   try {
-    const res = await getRepairOrdersApi()
-    list.value = res
+    const res = await getRepairOrdersApi({ page: page.value, page_size: pageSize.value })
+    list.value = res.data
+    total.value = res.total
   } catch {
     ElMessage.error('加载失败')
   }
@@ -217,5 +233,12 @@ onMounted(loadData)
 
 .repair-page :deep(.el-table__inner-wrapper) {
   border: none;
+}
+
+.pager {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+  flex-shrink: 0;
 }
 </style>

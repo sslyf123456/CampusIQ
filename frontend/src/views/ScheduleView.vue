@@ -8,6 +8,14 @@
         </div>
       </div>
 
+      <!-- 学期筛选 -->
+      <div class="filter-bar">
+        <span class="filter-label">学期筛选</span>
+        <el-select v-model="filterSemester" placeholder="全部学期" clearable style="width: 200px" @change="handleFilterChange">
+          <el-option v-for="s in semesterOptions" :key="s" :label="s" :value="s" />
+        </el-select>
+      </div>
+
       <!-- 学生视图：本周课表 -->
       <template v-if="!isAdmin">
         <el-table :data="scheduleList" stripe empty-text="暂无课程数据">
@@ -25,6 +33,7 @@
               第{{ row.start_week }}–{{ row.end_week }}周
             </template>
           </el-table-column>
+          <el-table-column prop="semester" label="学期" width="130" />
         </el-table>
       </template>
 
@@ -54,6 +63,18 @@
           </el-table-column>
         </el-table>
       </template>
+
+      <div class="pager">
+        <el-pagination
+          v-model:current-page="page"
+          v-model:page-size="pageSize"
+          :total="total"
+          :page-sizes="[10, 20, 50]"
+          layout="total, sizes, prev, pager, next"
+          @size-change="loadData"
+          @current-change="loadData"
+        />
+      </div>
     </el-card>
 
     <!-- 新增/编辑弹窗 -->
@@ -111,6 +132,13 @@ const isAdmin = computed(() => auth.user?.role === 'admin')
 
 const scheduleList = ref<Schedule[]>([])
 const loading = ref(false)
+const page = ref(1)
+const pageSize = ref(20)
+const total = ref(0)
+
+// 学期筛选
+const filterSemester = ref<string>('')
+const semesterOptions = ref<string[]>([])
 
 // 弹窗
 const dlgVisible = ref(false)
@@ -163,13 +191,28 @@ const rules = {
 async function loadData() {
   loading.value = true
   try {
-    const res = await getSchedulesApi()
-    scheduleList.value = res
+    const params: { semester?: string; page?: number; page_size?: number } = {}
+    if (filterSemester.value) params.semester = filterSemester.value
+    params.page = page.value
+    params.page_size = pageSize.value
+    const res = await getSchedulesApi(params)
+    scheduleList.value = res.data
+    total.value = res.total
+    // 未筛选时从返回数据中收集学期选项（筛选后不全，不更新）
+    if (!filterSemester.value) {
+      const set = new Set(res.data.map((s: Schedule) => s.semester))
+      semesterOptions.value = [...set].sort().reverse()
+    }
   } catch {
     ElMessage.error('加载课表失败')
   } finally {
     loading.value = false
   }
+}
+
+function handleFilterChange() {
+  page.value = 1
+  loadData()
 }
 
 function showDlg(row: Schedule | null) {
@@ -258,11 +301,31 @@ onMounted(loadData)
   color: #303133;
 }
 
+.filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+.filter-label {
+  font-size: 14px;
+  color: #606266;
+}
+
 .schedule-page :deep(.el-table) {
   border-radius: 4px;
 }
 
 .schedule-page :deep(.el-table__inner-wrapper) {
   border: none;
+}
+
+.pager {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+  flex-shrink: 0;
 }
 </style>

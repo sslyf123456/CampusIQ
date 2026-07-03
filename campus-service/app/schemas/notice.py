@@ -25,6 +25,7 @@ class NoticeOut(BaseModel):
     category: str
     publisher: Optional[str]
     published_at: datetime
+    updated_at: datetime
     created_by: Optional[int]
 
     class Config:

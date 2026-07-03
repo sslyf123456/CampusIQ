@@ -7,6 +7,8 @@
       </div>
 
       <el-table :data="list" stripe empty-text="暂无奖助记录">
+        <el-table-column v-if="isAdmin" prop="student_no" label="学号" width="120" />
+        <el-table-column v-if="isAdmin" prop="student_name" label="姓名" width="100" />
         <el-table-column prop="type" label="类型" width="100" />
         <el-table-column prop="name" label="奖项名称" />
         <el-table-column prop="amount" label="金额（元）" width="120" align="right">
@@ -22,6 +24,9 @@
         <el-table-column label="创建时间" width="170">
           <template #default="{ row }">{{ formatTime(row.created_at) }}</template>
         </el-table-column>
+        <el-table-column label="更新时间" width="170">
+          <template #default="{ row }">{{ formatTime(row.updated_at) }}</template>
+        </el-table-column>
         <el-table-column label="操作" width="160" fixed="right" v-if="isAdmin">
           <template #default="{ row }">
             <el-button size="small" @click="showDlg(row)">编辑</el-button>
@@ -29,6 +34,18 @@
           </template>
         </el-table-column>
       </el-table>
+
+      <div class="pager">
+        <el-pagination
+          v-model:current-page="page"
+          v-model:page-size="pageSize"
+          :total="total"
+          :page-sizes="[10, 20, 50]"
+          layout="total, sizes, prev, pager, next"
+          @size-change="loadData"
+          @current-change="loadData"
+        />
+      </div>
     </el-card>
 
     <!-- 增删改弹窗 -->
@@ -84,6 +101,9 @@ import type { ScholarshipRecord } from '@/types/scholarship'
 const auth = useAuthStore()
 const isAdmin = computed(() => auth.user?.role === 'admin')
 const list = ref<ScholarshipRecord[]>([])
+const page = ref(1)
+const pageSize = ref(20)
+const total = ref(0)
 
 const dlgVisible = ref(false)
 const dlgTitle = ref('添加记录')
@@ -122,8 +142,9 @@ const rules = {
 
 async function loadData() {
   try {
-    const res = await getScholarshipsApi()
-    list.value = res
+    const res = await getScholarshipsApi({ page: page.value, page_size: pageSize.value })
+    list.value = res.data
+    total.value = res.total
   } catch {
     ElMessage.error('加载失败')
   }
@@ -225,5 +246,12 @@ onMounted(loadData)
 
 .scholarship-page :deep(.el-table__inner-wrapper) {
   border: none;
+}
+
+.pager {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+  flex-shrink: 0;
 }
 </style>

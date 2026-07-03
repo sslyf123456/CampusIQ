@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 
-from ..models.schedule import Schedule
+from ..models.schedule import Schedule, student_schedule
 from ..models.student import Student
 from ..utils.exceptions import NotFound, BadRequest
 from ..schemas.schedule import ScheduleCreate, ScheduleUpdate
@@ -11,15 +11,40 @@ def list_schedules(db: Session, page: int = 1, page_size: int = 50, semester: st
     if semester:
         q = q.filter(Schedule.semester == semester)
     total = q.count()
-    items = q.order_by(Schedule.weekday, Schedule.start_period).offset((page - 1) * page_size).limit(page_size).all()
+    # 排序：学年降序(新学年优先) -> 周几升序(周一优先) -> ID升序
+    items = (
+        q.order_by(
+            Schedule.semester.desc(),
+            Schedule.weekday.asc(),
+            Schedule.id.asc(),
+        )
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+        .all()
+    )
     return {"data": items, "total": total, "page": page, "page_size": page_size}
 
 
-def get_my_schedules(db: Session, student_db_id: int):
+def get_my_schedules(db: Session, student_db_id: int, semester: str = ""):
     student = db.query(Student).filter(Student.id == student_db_id).first()
     if not student:
         raise NotFound("学生")
-    return student.schedules
+    # 显式 join 关联表查询，与 list_schedules 保持一致的 DB 层排序
+    q = (
+        db.query(Schedule)
+        .join(student_schedule, student_schedule.c.schedule_id == Schedule.id)
+        .filter(student_schedule.c.student_id == student_db_id)
+    )
+    if semester:
+        q = q.filter(Schedule.semester == semester)
+    return (
+        q.order_by(
+            Schedule.semester.desc(),
+            Schedule.weekday.asc(),
+            Schedule.id.asc(),
+        )
+        .all()
+    )
 
 
 def get_schedule(db: Session, schedule_id: int):

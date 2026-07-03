@@ -7,10 +7,10 @@ export async function createRepairOrderApi(data: { description: string; location
   return res.data.data
 }
 
-// 获取工单列表：后端根据 JWT role 区分，返回 { data: [...], total, ... }
+// 获取工单列表：后端根据 JWT role 区分，返回 { data: [...], total, page, page_size }
 export async function getRepairOrdersApi(params?: { status?: string; page?: number; page_size?: number }) {
   const res = await request.get<RepairListResponse>('/campus/repair-orders', { params })
-  return res.data.data
+  return res.data
 }
 
 // 管理员：更新工单状态，返回 { data: {...} }

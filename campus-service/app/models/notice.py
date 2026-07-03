@@ -14,4 +14,5 @@ class Notice(Base):
     category = Column(String(64), nullable=False, default="general")
     publisher = Column(String(64))
     published_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    updated_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False, onupdate=func.now())
     created_by = Column(Integer, ForeignKey("campus.admins.id", ondelete="SET NULL"))

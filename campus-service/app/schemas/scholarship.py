@@ -27,6 +27,8 @@ class ScholarshipUpdate(BaseModel):
 class ScholarshipOut(BaseModel):
     id: int
     student_id: int
+    student_no: Optional[str] = None
+    student_name: Optional[str] = None
     type: str
     name: str
     amount: Optional[Decimal]

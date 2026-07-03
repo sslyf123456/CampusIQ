@@ -210,10 +210,11 @@ def import_notices(cur, data, admin_map):
         admin_id = admin_map.get(item.get("created_by_username"))
         cur.execute(
             "INSERT INTO campus.notices "
-            "(title, content, category, publisher, published_at, created_by) "
-            "VALUES (%s, %s, %s, %s, %s, %s)",
+            "(title, content, category, publisher, published_at, updated_at, created_by) "
+            "VALUES (%s, %s, %s, %s, %s, %s, %s)",
             (item["title"], item["content"], item.get("category", "general"),
-             item.get("publisher"), item.get("published_at"), admin_id),
+             item.get("publisher"), item.get("published_at"),
+             item.get("updated_at", item.get("published_at")), admin_id),
         )
     print(f"  [OK] 通知: {len(data)} 条")
 

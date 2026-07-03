@@ -1,10 +1,10 @@
 import request from './request'
 import type { ScholarshipRecord, ScholarshipListResponse } from '@/types/scholarship'
 
-// 获取奖助记录：后端根据 JWT role 区分，返回 { data: [...], total, ... }
+// 获取奖助记录：后端根据 JWT role 区分，返回 { data: [...], total, page, page_size }
 export async function getScholarshipsApi(params?: { status?: string; page?: number; page_size?: number }) {
   const res = await request.get<ScholarshipListResponse>('/campus/scholarships', { params })
-  return res.data.data
+  return res.data
 }
 
 // 管理员：创建记录，返回 { data: {...} }

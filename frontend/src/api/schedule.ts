@@ -5,7 +5,7 @@ import type { Schedule, ScheduleListResponse } from '@/types/schedule'
 // 后端返回格式：{ data: [...], total, page, page_size }
 export async function getSchedulesApi(params?: { semester?: string; page?: number; page_size?: number }) {
   const res = await request.get<ScheduleListResponse>('/campus/schedules', { params })
-  return res.data.data
+  return res.data
 }
 
 // 管理员：创建课程，后端返回 { data: {...} }

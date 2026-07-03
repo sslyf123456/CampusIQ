@@ -5,6 +5,7 @@ export interface Notice {
   category: string
   publisher: string
   published_at: string
+  updated_at: string
 }
 
 export interface NoticeListResponse {

@@ -10,6 +10,10 @@
         <el-icon><User /></el-icon>
         <span>个人信息</span>
       </el-menu-item>
+      <el-menu-item index="/students" v-if="isAdmin">
+        <el-icon><UserFilled /></el-icon>
+        <span>学生管理</span>
+      </el-menu-item>
       <el-menu-item index="/schedule">
         <el-icon><Calendar /></el-icon>
         <span>课表</span>
@@ -44,13 +48,14 @@ import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { ElMessage } from 'element-plus'
 import {
-  User, Calendar, Tools, Money, Bell, ChatDotRound, SwitchButton
+  User, UserFilled, Calendar, Tools, Money, Bell, ChatDotRound, SwitchButton
 } from '@element-plus/icons-vue'
 
 const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
 
+const isAdmin = computed(() => auth.user?.role === 'admin')
 const activeMenu = computed(() => '/' + (route.path.split('/')[1] || 'profile'))
 
 function handleSelect(path: string) {

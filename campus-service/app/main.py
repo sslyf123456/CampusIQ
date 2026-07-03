@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,6 +12,13 @@ from .utils.exceptions import (
     general_exception_handler,
     sqlalchemy_exception_handler,
     validation_exception_handler,
+)
+
+# 日志格式配置
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 
 app = FastAPI(title="Campus QA - Campus Service", version="1.0.0")

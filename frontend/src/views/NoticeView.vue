@@ -4,8 +4,8 @@
       <div class="page-header">
         <h2>校园通知</h2>
         <div style="display:flex;gap:12px;align-items:center;">
-          <el-input v-model="keyword" placeholder="搜索通知..." clearable @keyup.enter="loadData" style="width:220px" size="small" />
-          <el-button @click="loadData" size="small">搜索</el-button>
+          <el-input v-model="keyword" placeholder="搜索通知..." clearable @keyup.enter="handleSearch" style="width:220px" size="small" />
+          <el-button @click="handleSearch" size="small">搜索</el-button>
           <el-button type="primary" @click="showDlg(null)" v-if="isAdmin">+ 发布通知</el-button>
         </div>
       </div>
@@ -19,6 +19,9 @@
         <el-table-column label="发布时间" width="170">
           <template #default="{ row }">{{ formatTime(row.published_at) }}</template>
         </el-table-column>
+        <el-table-column label="修改时间" width="170">
+          <template #default="{ row }">{{ formatTime(row.updated_at) }}</template>
+        </el-table-column>
         <el-table-column label="操作" :width="isAdmin ? 200 : 80" fixed="right">
           <template #default="{ row }">
             <el-button size="small" @click="showDetail(row)">查看</el-button>
@@ -29,6 +32,18 @@
           </template>
         </el-table-column>
       </el-table>
+
+      <div class="pager">
+        <el-pagination
+          v-model:current-page="page"
+          v-model:page-size="pageSize"
+          :total="total"
+          :page-sizes="[10, 20, 50]"
+          layout="total, sizes, prev, pager, next"
+          @size-change="handleSearch"
+          @current-change="loadData"
+        />
+      </div>
     </el-card>
 
     <!-- 查看详情弹窗 -->
@@ -80,6 +95,9 @@ const auth = useAuthStore()
 const isAdmin = computed(() => auth.user?.role === 'admin')
 const list = ref<Notice[]>([])
 const keyword = ref('')
+const page = ref(1)
+const pageSize = ref(20)
+const total = ref(0)
 
 // 详情
 const detailVisible = ref(false)
@@ -115,11 +133,21 @@ const CATEGORY_MAP: Record<string, string> = {
 
 async function loadData() {
   try {
-    const res = await getNoticesApi({ keyword: keyword.value || undefined })
-    list.value = res
+    const res = await getNoticesApi({
+      keyword: keyword.value || undefined,
+      page: page.value,
+      page_size: pageSize.value,
+    })
+    list.value = res.data
+    total.value = res.total
   } catch {
     ElMessage.error('加载失败')
   }
+}
+
+function handleSearch() {
+  page.value = 1
+  loadData()
 }
 
 function showDlg(row: Notice | null) {
@@ -235,5 +263,12 @@ onMounted(loadData)
   white-space: pre-wrap;
   line-height: 1.8;
   color: #303133;
+}
+
+.pager {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+  flex-shrink: 0;
 }
 </style>

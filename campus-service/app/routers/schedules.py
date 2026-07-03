@@ -19,7 +19,7 @@ def list_schedules(
     db: Session = Depends(get_db),
 ):
     if current_user["role"] == "student":
-        courses = schedule_service.get_my_schedules(db, current_user["db_id"])
+        courses = schedule_service.get_my_schedules(db, current_user["db_id"], semester)
         courses_out = [ScheduleOut.model_validate(c).model_dump() for c in courses]
         return {"data": courses_out}
     return schedule_service.list_schedules(db, page, page_size, semester)

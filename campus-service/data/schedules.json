@@ -18,5 +18,13 @@
   {"course_name":"机器学习","teacher":"吕老师","weekday":1,"start_period":1,"end_period":2,"location":"教学楼C301","start_week":1,"end_week":16,"semester":"2025-2026-2","created_by_username":"admin"},
   {"course_name":"自然语言处理","teacher":"施老师","weekday":2,"start_period":3,"end_period":4,"location":"教学楼C302","start_week":1,"end_week":16,"semester":"2025-2026-2","created_by_username":"admin"},
   {"course_name":"云计算导论","teacher":"张老师","weekday":4,"start_period":1,"end_period":2,"location":"教学楼A303","start_week":1,"end_week":16,"semester":"2025-2026-2","created_by_username":"admin"},
-  {"course_name":"大学生心理健康","teacher":"曹老师","weekday":5,"start_period":3,"end_period":4,"location":"教学楼B102","start_week":1,"end_week":16,"semester":"2025-2026-2","created_by_username":"admin"}
+  {"course_name":"大学生心理健康","teacher":"曹老师","weekday":5,"start_period":3,"end_period":4,"location":"教学楼B102","start_week":1,"end_week":16,"semester":"2025-2026-2","created_by_username":"admin"},
+  {"course_name":"深度学习","teacher":"吕老师","weekday":1,"start_period":1,"end_period":2,"location":"教学楼C401","start_week":1,"end_week":16,"semester":"2026-2027-1","created_by_username":"admin"},
+  {"course_name":"大数据技术","teacher":"张老师","weekday":2,"start_period":3,"end_period":4,"location":"教学楼A402","start_week":1,"end_week":16,"semester":"2026-2027-1","created_by_username":"admin"},
+  {"course_name":"计算机视觉","teacher":"施老师","weekday":3,"start_period":1,"end_period":2,"location":"实验楼E301","start_week":1,"end_week":16,"semester":"2026-2027-1","created_by_username":"admin"},
+  {"course_name":"软件工程实务","teacher":"刘老师","weekday":1,"start_period":3,"end_period":4,"location":"教学楼B401","start_week":1,"end_week":16,"semester":"2026-2027-1","created_by_username":"admin"},
+  {"course_name":"高级算法分析","teacher":"韩老师","weekday":4,"start_period":1,"end_period":2,"location":"教学楼D201","start_week":1,"end_week":16,"semester":"2025-2026-1","created_by_username":"admin"},
+  {"course_name":"离散数学","teacher":"朱老师","weekday":2,"start_period":1,"end_period":2,"location":"教学楼D103","start_week":1,"end_week":16,"semester":"2025-2026-1","created_by_username":"admin"},
+  {"course_name":"大学英语（三）","teacher":"吴老师","weekday":3,"start_period":3,"end_period":4,"location":"教学楼B101","start_week":1,"end_week":16,"semester":"2025-2026-1","created_by_username":"admin"},
+  {"course_name":"数字图像处理","teacher":"许老师","weekday":5,"start_period":5,"end_period":6,"location":"实验楼E203","start_week":1,"end_week":16,"semester":"2025-2026-1","created_by_username":"admin"}
 ]

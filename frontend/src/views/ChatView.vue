@@ -563,10 +563,11 @@ loadConversations()
 
 .suggestion-item {
   padding: 12px 16px;
-  border: 1px solid #e4e7ed;
+  border: 1px solid #b0b4bb;
   border-radius: 8px;
   font-size: 13px;
-  color: #606266;
+  color: #303133;
+  background: #f7f8fa;
   cursor: pointer;
   text-align: center;
   transition: all 0.2s;
@@ -575,6 +576,6 @@ loadConversations()
 .suggestion-item:hover {
   border-color: #409eff;
   color: #409eff;
-  background: #ecf5ff;
+  background: #f0f7ff;
 }
 </style>
