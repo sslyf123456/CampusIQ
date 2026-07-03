@@ -135,7 +135,7 @@ const rules = {
     { type: 'number', min: 1, max: 12, message: '节次范围 1-12', trigger: 'blur' },
     {
       validator: (_rule: any, value: number, callback: any) => {
-        if (value < form.value.start_period) callback(new Error('结束节次不能小于开始节次'))
+        if (form.value.start_period != null && value < form.value.start_period) callback(new Error('结束节次不能小于开始节次'))
         else callback()
       },
       trigger: 'blur',
@@ -148,7 +148,7 @@ const rules = {
     { type: 'number', min: 1, max: 20, message: '周次范围 1-20', trigger: 'blur' },
     {
       validator: (_rule: any, value: number, callback: any) => {
-        if (value < form.value.start_week) callback(new Error('结束周次不能小于开始周次'))
+        if (form.value.start_week != null && value < form.value.start_week) callback(new Error('结束周次不能小于开始周次'))
         else callback()
       },
       trigger: 'blur',

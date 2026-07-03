@@ -67,7 +67,7 @@ const infoRows = computed(() => {
     rows.push({ key: 'gender', label: '性别', value: user.value.gender === 'male' ? '男' : user.value.gender === 'female' ? '女' : user.value.gender || '-' })
     rows.push({ key: 'department', label: '院系', value: user.value.department || '-' })
     rows.push({ key: 'major', label: '专业', value: user.value.major || '-' })
-    rows.push({ key: 'enrollment_year', label: '入学年份', value: user.value.enrollment_year || '-' })
+    rows.push({ key: 'enrollment_year', label: '入学年份', value: user.value.enrollment_year ? String(user.value.enrollment_year) : '-' })
     rows.push({ key: 'birth_date', label: '出生日期', value: user.value.birth_date || '-' })
   }
   rows.push({ key: 'email', label: '邮箱', value: user.value.email || '-' })

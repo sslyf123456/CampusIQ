@@ -44,6 +44,11 @@ const router = createRouter({
           name: 'Notice',
           component: () => import('@/views/NoticeView.vue'),
         },
+        {
+          path: 'chat',
+          name: 'Chat',
+          component: () => import('@/views/ChatView.vue'),
+        },
       ],
     },
     {
